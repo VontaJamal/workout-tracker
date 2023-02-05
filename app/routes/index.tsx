@@ -5,6 +5,7 @@ import { XMarkIcon as XIcon } from "@heroicons/react/20/solid";
 export default function Index() {
   const [workout, setWorkout] = useState("");
   const [workoutList, setWorkoutList] = useState<string[]>([]);
+  const [isStarted, setIsStarted] = useState<boolean>(false);
 
   function submitForm(e: SyntheticEvent) {
     e.preventDefault();
@@ -23,7 +24,7 @@ export default function Index() {
       <li key={workout} className="flex items-center justify-center">
         {workout}
         <XIcon
-          className="h-6 cursor-pointer"
+          className="h-6 cursor-pointer hover:text-red-600"
           onClick={() => removeWorkout(workout)}
         />
       </li>
@@ -32,6 +33,12 @@ export default function Index() {
 
   return (
     <main className="relative min-h-screen flex-col gap-8 bg-white sm:flex sm:items-center sm:justify-center">
+      <button
+        className="rounded-full border border-gray-400 p-6"
+        onClick={() => setIsStarted(true)}
+      >
+        Work!
+      </button>
       <form onSubmit={submitForm}>
         <input
           name="workout-name"
