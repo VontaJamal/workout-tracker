@@ -1,5 +1,6 @@
-import type { SyntheticEvent } from "react";
 import { useState } from "react";
+import type { SyntheticEvent } from "react";
+import { XMarkIcon as XIcon } from "@heroicons/react/20/solid";
 
 export default function Index() {
   const [workout, setWorkout] = useState("");
@@ -7,29 +8,43 @@ export default function Index() {
 
   function submitForm(e: SyntheticEvent) {
     e.preventDefault();
-    console.log("first");
+    if (!workout) return;
     setWorkout("");
   }
 
-  function displayWorkout(workout: string) {
-    return <p key={workout}>{workout}</p>;
+  function removeWorkout(workout: string): void {
+    setWorkoutList((currentList) =>
+      currentList.filter((current) => current !== workout)
+    );
+  }
+
+  function displayWorkout(workout: string): JSX.Element {
+    return (
+      <li key={workout} className="flex items-center justify-center">
+        {workout}
+        <XIcon
+          className="h-6 cursor-pointer"
+          onClick={() => removeWorkout(workout)}
+        />
+      </li>
+    );
   }
 
   return (
-    <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
+    <main className="relative min-h-screen flex-col gap-8 bg-white sm:flex sm:items-center sm:justify-center">
       <form onSubmit={submitForm}>
         <input
           name="workout-name"
           onChange={(e) => setWorkout(e.target.value)}
           value={workout}
           type="text"
+          className="border-4 border-blue-700"
         />
         <button onClick={() => setWorkoutList([...workoutList, workout])}>
           Add workout
         </button>
       </form>
-
-      {workoutList.map(displayWorkout)}
+      <ul>{workoutList.map(displayWorkout)}</ul>
     </main>
   );
 }
