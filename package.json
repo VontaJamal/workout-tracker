@@ -29,6 +29,7 @@
     "/public/build"
   ],
   "dependencies": {
+    "@heroicons/react": "^2.0.14",
     "@prisma/client": "^4.9.0",
     "@remix-run/node": "*",
     "@remix-run/react": "*",
