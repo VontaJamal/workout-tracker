@@ -6,10 +6,12 @@ export default function Index() {
   const [workout, setWorkout] = useState("");
   const [workoutList, setWorkoutList] = useState<string[]>([]);
   const [isStarted, setIsStarted] = useState<boolean>(false);
+  const [timer, setTimer] = useState(0);
 
   function submitForm(e: SyntheticEvent) {
     e.preventDefault();
     if (!workout) return;
+    setWorkoutList([...workoutList, workout]);
     setWorkout("");
   }
 
@@ -31,11 +33,17 @@ export default function Index() {
     );
   }
 
+  function startWorkout() {
+    setIsStarted(true);
+    setInterval(() => setTimer((time) => time + 1), 1000);
+  }
+
   return (
     <main className="relative min-h-screen flex-col gap-8 bg-white sm:flex sm:items-center sm:justify-center">
+      <p>timer: {timer}</p>
       <button
         className="rounded-full border border-gray-400 p-6"
-        onClick={() => setIsStarted(true)}
+        onClick={() => startWorkout()}
       >
         Work!
       </button>
@@ -47,9 +55,7 @@ export default function Index() {
           type="text"
           className="border-4 border-blue-700"
         />
-        <button onClick={() => setWorkoutList([...workoutList, workout])}>
-          Add workout
-        </button>
+        <button>Add workout</button>
       </form>
       <ul>{workoutList.map(displayWorkout)}</ul>
     </main>
