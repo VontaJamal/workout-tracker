@@ -151,7 +151,7 @@ it("opens the selected day's actual workouts, sets, notes, and cardio instead of
   expect(dialog).toHaveTextContent("Solid last set.");
   expect(dialog).toHaveTextContent("Evening walk");
   expect(dialog).toHaveTextContent("20.0 min");
-  expect(dialog).toHaveTextContent("Rep quality: unknown");
+  expect(dialog).not.toHaveTextContent("Rep quality:");
   expect(dialog).not.toHaveTextContent("Unrelated workout");
   await user.click(
     screen.getByRole("button", { name: "Close workout details" })

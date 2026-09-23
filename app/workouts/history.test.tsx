@@ -58,8 +58,8 @@ beforeAll(async () => {
   Index = (await import("../routes/index")).default;
 });
 
-it("shows recorded unknown rep quality in session history", () => {
-  expect(renderToStaticMarkup(<Index />)).toContain("Rep quality: unknown");
+it("keeps rep quality out of the visible session history", () => {
+  expect(renderToStaticMarkup(<Index />)).not.toContain("Rep quality:");
 });
 it("renders formatted cardio durations and historical records as numbers", () => {
   const view = renderToStaticMarkup(<Index />);

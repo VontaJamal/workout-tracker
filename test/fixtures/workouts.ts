@@ -84,6 +84,74 @@ export function sampleWorkbook(today = easternDate(new Date())): Workbook {
         });
     });
   }
+  const last = data.sessions[data.sessions.length - 1];
+  if (last)
+    data.sets.push({
+      "Set ID": "sample-supplemental",
+      "Session ID": last["Session ID"],
+      Date: last.Date,
+      Exercise: "Romanian deadlift",
+      "Exercise Key": "romanian_deadlift",
+      Equipment: "Dumbbells",
+      "Set Type": "supplemental",
+      "Actual Weight": "40",
+      "Weight Unit": "lb",
+      "Load Type": "external_load",
+      Reps: "10",
+      Notes: "Weight per dumbbell.",
+    });
+  const circuit = data.sessions[Math.max(0, data.sessions.length - 2)];
+  if (circuit) {
+    circuit.Workout = "Full body circuit";
+    circuit["Main Lift Focus"] = "";
+    circuit.Focus = "Three movements, equal focus";
+    data.sets = data.sets.filter(
+      (s) => s["Session ID"] !== circuit["Session ID"]
+    );
+    ["Goblet squat", "Push-up", "Dumbbell row"].forEach((Exercise, i) =>
+      data.sets.push({
+        "Set ID": `circuit-${i}`,
+        "Session ID": circuit["Session ID"],
+        Date: circuit.Date,
+        Exercise,
+        "Exercise Key": Exercise.toLowerCase().replace(/ /g, "_"),
+        Equipment: i === 1 ? "Floor" : "Dumbbells",
+        "Set Type": "working",
+        "Set Number": "1",
+        "Load Type": i === 1 ? "bodyweight" : "external_load",
+        "Actual Weight": i === 1 ? "" : "30",
+        "Weight Unit": i === 1 ? "" : "lb",
+        Reps: "12",
+      })
+    );
+  }
+  const watch = data.sessions[Math.max(0, data.sessions.length - 3)];
+  if (watch) {
+    watch.Workout = "Cardio";
+    watch["Main Lift Focus"] = "";
+    watch.Focus = "Outdoor run";
+    data.sets = data.sets.filter(
+      (s) => s["Session ID"] !== watch["Session ID"]
+    );
+    data.cardio = data.cardio.filter(
+      (r) => r["Session ID"] !== watch["Session ID"]
+    );
+    data.cardio.push({
+      "Cardio ID": "sample-watch",
+      "Session ID": watch["Session ID"],
+      Activity: "Outdoor run",
+      "Duration Seconds": "1860",
+      Calories: "284",
+      "Avg HR": "138",
+      "Max HR": "164",
+      Steps: "4210",
+      "Device Distance Miles": "2.6",
+      "Distance Source": "Watch GPS",
+      "Zone Minutes": "26",
+      "Data Source": "watch_photo",
+      Notes: "Synthetic watch stats for design review.",
+    });
+  }
   data.sessions.push({
     "Session ID": "sample-old",
     Date: format(addDays(today, -300)),

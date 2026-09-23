@@ -9,7 +9,9 @@ A read-only, responsive workout dashboard built on this repository's Remix app. 
 - Shared 4, 12, and 26 week ranges, anchored to the latest sheet read in Eastern Time. Weeks start Monday and the current week is labeled partial.
 - Session summaries with expandable individual sets, notes, and cardio. History shows eight workouts at a time; Show more keeps older workouts accessible independently of the chart range.
 - Exercise progress grouped by exercise key, equipment, load type, and unit.
-- Current programming inputs/training maxes and separate historical rep PRs.
+- A Hall of Fame above the journal shows historical rep PRs, most reps in one set, and most reps in one recorded day. Rep comparisons separate equipment, load type, unit, and actual weight; duplicate set IDs are counted once. Training maxes remain separate.
+- Main and supplemental work is grouped into exercise cards. Sessions explicitly labeled as a circuit in Workout, Focus, or Main Lift Focus show every movement at equal prominence. Unclassified workouts stay neutral.
+- Cardio details display recorded duration, calories, average/peak heart rate, steps, zone minutes, device distance, speed, and incline when known. Notes can include an HTTPS link to an original watch photo or video; the link opens at its existing host with its existing access permissions. The app does not upload files, OCR images, or automatically receive chat attachments.
 - Signed-out, access-restricted, setup, empty, refresh, and connection-error states.
 - Private server-side Sheets reads, restricted to one existing app user ID.
 
@@ -52,7 +54,7 @@ Expected tabs and column contracts are in `app/workouts/data.ts`: **Sessions**, 
 - Bodyweight sets show reps without invented weight or tonnage.
 - Progress shows the heaviest eligible set per session, breaking load ties by reps. It is not an estimated-strength score; rep counts remain visible.
 - Warm-up, calibration, failed, and rest-pause sets remain visible in history but are excluded from the progress chart.
-- Unknown rep quality is displayed as recorded, not asserted to be clean.
+- RIR and rep-quality metadata stay in the sheet and are omitted from the interface. Existing eligibility rules still exclude failed sets from progress and derived records.
 - Historical PRs come directly from Rep PRs and are never overwritten by recent sessions.
 - Program weeks come from each session; a repeated week does not advance automatically.
 - Session details preserve original planned/actual loads, independent of current training maxes.

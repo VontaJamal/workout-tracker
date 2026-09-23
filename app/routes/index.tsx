@@ -23,7 +23,8 @@ import {
   WeeklyChart,
   StrengthChart,
 } from "~/components/charts";
-import { Journal, Records } from "~/components/journal";
+import { Journal } from "~/components/journal";
+import { Records } from "~/components/records";
 import styles from "~/styles/workouts.css";
 export const headers: HeadersFunction = () => ({
   "Cache-Control": "private, no-store",
@@ -76,7 +77,7 @@ export default function Index() {
           <nav aria-label="Main navigation">
             <a href="#overview">Overview</a>
             <a href="#history">Journal</a>
-            <a href="#records">Records</a>
+            <a href="#records">Hall of Fame</a>
           </nav>
         )}
         <div className="actions">
@@ -355,8 +356,8 @@ export default function Index() {
                 </p>
               </section>
             </div>
-            <Journal data={data} />
             <Records data={data} />
+            <Journal data={data} />
           </>
         ) : (
           <section className="connection-layout">

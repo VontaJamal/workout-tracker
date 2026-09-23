@@ -1,4 +1,3 @@
-import { number } from "~/workouts/data";
 import { SessionDetails } from "./session-details";
 import { useState } from "react";
 import type { Workbook } from "~/workouts/data";
@@ -71,61 +70,6 @@ export function Journal({ data }: { data: Workbook }) {
           )}
         </div>
       )}
-    </section>
-  );
-}
-export function Records({ data }: { data: Workbook }) {
-  return (
-    <section className="panel records" id="records">
-      <p className="eyebrow">PERSONAL RECORDS</p>
-      <h2>
-        Personal bests<span className="heading-dot">.</span>
-      </h2>
-      <p className="muted">
-        Historical rep records from your spreadsheet. Estimated 1RM is not a
-        tested max.
-      </p>
-      {!data.prs.length && (
-        <p className="empty">
-          Your rep records will appear here when they are recorded in your
-          sheet.
-        </p>
-      )}
-      <div className="pr-grid">
-        {[...new Set(data.prs.map((r) => r.Lift))].map((lift) => (
-          <details key={lift}>
-            <summary>
-              {lift} <span>Rep records ＋</span>
-            </summary>
-            <table>
-              <thead>
-                <tr>
-                  <th>Reps</th>
-                  <th>Best · lb</th>
-                  <th>Est. 1RM</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.prs
-                  .filter(
-                    (r) => r.Lift === lift && (number(r["Rep Max"]) ?? 0) > 0
-                  )
-                  .map((r) => (
-                    <tr key={r.Reps}>
-                      <td>{r.Reps}</td>
-                      <td>{r["Rep Max"]}</td>
-                      <td>
-                        {number(r["Est. 1RM"]) === null
-                          ? "—"
-                          : number(r["Est. 1RM"])!.toFixed(1)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </details>
-        ))}
-      </div>
     </section>
   );
 }
