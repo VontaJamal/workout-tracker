@@ -1,138 +1,438 @@
-import { Link } from "@remix-run/react";
+import { dashboardData } from "../workouts/dashboard.server";
+import type {
+  HeadersFunction,
+  LinksFunction,
+  LoaderArgs,
+} from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Form, Link, useLoaderData, useRevalidator } from "@remix-run/react";
+import { useState } from "react";
+import { getUser } from "../session.server";
+import { configured, readWorkbook } from "../workouts/sheets.server";
+import { dateKey, exerciseId, number, progress } from "~/workouts/data";
+import type { Row } from "~/workouts/data";
+import styles from "~/styles/workouts.css";
+export const headers: HeadersFunction = () => ({
+  "Cache-Control": "private, no-store",
+});
+export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
+export async function loader({ request }: LoaderArgs) {
+  const user = await getUser(request);
+  return json(
+    await dashboardData(user?.id, {
+      ownerId: process.env.WORKOUT_OWNER_USER_ID,
+      sheetId: process.env.GOOGLE_SHEETS_ID,
+      configured: configured(),
+      read: readWorkbook,
+    }),
+    { headers: { "Cache-Control": "private, no-store" } }
+  );
+}
 
-import { useOptionalUser } from "~/utils";
-
+function value(v: string | undefined) {
+  return v === "" || v == null ? "—" : v;
+}
+function loadLabel(r: Row) {
+  return r["Load Type"] === "bodyweight"
+    ? "BW"
+    : `${value(r["Actual Weight"])} ${r["Weight Unit"] || ""}`;
+}
+function rir(r: Row) {
+  const a = r["RIR Min"],
+    b = r["RIR Max"];
+  return a && b && a !== b ? `${a}–${b}` : a || b || "—";
+}
 export default function Index() {
-  const user = useOptionalUser();
+  const { state, error, data, synced, sheetUrl, signedIn } =
+    useLoaderData<typeof loader>();
+  const refresh = useRevalidator();
+  const [selected, setSelected] = useState("");
+  const [filter, setFilter] = useState("All");
+  const exercises = data
+    ? [...new Map(data.sets.map((r) => [exerciseId(r), r])).entries()]
+    : [];
+  const exercise = exercises.some(([id]) => id === selected)
+    ? selected
+    : exercises[0]?.[0] || "";
+  const points = data ? progress(data.sets, exercise) : [];
+  const sessions = data
+    ? [...data.sessions].sort((a, b) =>
+        dateKey(b.Date).localeCompare(dateKey(a.Date))
+      )
+    : [];
+  const visible = sessions.filter(
+    (s) => filter === "All" || s.Workout === filter
+  );
   return (
-    <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
-      <div className="relative sm:pb-16 sm:pt-8">
-        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div className="relative shadow-xl sm:overflow-hidden sm:rounded-2xl">
-            <div className="absolute inset-0">
-              <img
-                className="h-full w-full object-cover"
-                src="https://user-images.githubusercontent.com/1500684/157774694-99820c51-8165-4908-a031-34fc371ac0d6.jpg"
-                alt="Sonic Youth On Stage"
-              />
-              <div className="absolute inset-0 bg-[color:rgba(254,204,27,0.5)] mix-blend-multiply" />
-            </div>
-            <div className="relative px-4 pt-16 pb-8 sm:px-6 sm:pt-24 sm:pb-14 lg:px-8 lg:pb-20 lg:pt-32">
-              <h1 className="text-center text-6xl font-extrabold tracking-tight sm:text-8xl lg:text-9xl">
-                <span className="block uppercase text-yellow-500 drop-shadow-md">
-                  Indie Stack
-                </span>
-              </h1>
-              <p className="mx-auto mt-6 max-w-lg text-center text-xl text-white sm:max-w-3xl">
-                Check the README.md file for instructions on how to get this
-                project deployed.
-              </p>
-              <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
-                {user ? (
-                  <Link
-                    to="/notes"
-                    className="flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-3 text-base font-medium text-yellow-700 shadow-sm hover:bg-yellow-50 sm:px-8"
-                  >
-                    View Notes for {user.email}
-                  </Link>
-                ) : (
-                  <div className="space-y-4 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
-                    <Link
-                      to="/join"
-                      className="flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-3 text-base font-medium text-yellow-700 shadow-sm hover:bg-yellow-50 sm:px-8"
-                    >
-                      Sign up
-                    </Link>
-                    <Link
-                      to="/login"
-                      className="flex items-center justify-center rounded-md bg-yellow-500 px-4 py-3 font-medium text-white hover:bg-yellow-600"
-                    >
-                      Log In
-                    </Link>
-                  </div>
-                )}
+    <main className="tracker">
+      <header className="topbar">
+        <a className="brand" href="/">
+          FORM<span>WORKOUT JOURNAL</span>
+        </a>
+        <div className="actions">
+          {sheetUrl && (
+            <a href={sheetUrl} target="_blank" rel="noreferrer">
+              Open spreadsheet ↗
+            </a>
+          )}
+          {signedIn && (
+            <Form method="post" action="/logout">
+              <button>Log out</button>
+            </Form>
+          )}
+        </div>
+      </header>
+      <section className="intro">
+        <div>
+          <p className="eyebrow">YOUR WORK. IN PERSPECTIVE.</p>
+          <h1>Keep showing up.</h1>
+          <p>Your workouts, your progress. All in one place.</p>
+        </div>
+        {state === "ready" && (
+          <div className="sync">
+            <button
+              className="primary"
+              onClick={() => refresh.revalidate()}
+              disabled={refresh.state !== "idle"}
+            >
+              {refresh.state === "idle" ? "Refresh from sheet" : "Refreshing…"}
+            </button>
+            <small role="status">
+              Read{" "}
+              {new Date(synced).toLocaleString("en-US", {
+                timeZone: "America/New_York",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}{" "}
+              ET
+            </small>
+          </div>
+        )}
+      </section>
+      {state !== "ready" || !data ? (
+        <section className="panel connection">
+          <p className="eyebrow">SPREADSHEET → JOURNAL</p>
+          <h2>
+            {state === "signed-out"
+              ? "Your training, at a glance."
+              : state === "restricted"
+              ? "Private workout journal"
+              : state === "setup"
+              ? "Ready to connect your spreadsheet"
+              : "Connection interrupted"}
+          </h2>
+          <p>
+            {state === "signed-out"
+              ? "Sign in to see your workout history and progress. Keep logging in your spreadsheet."
+              : state === "restricted"
+              ? "This account has not been granted access to the journal."
+              : state === "setup"
+              ? "The dashboard is ready. Finish the private Google Sheets connection to bring your workouts in."
+              : error}
+          </p>
+          {state === "signed-out" ? (
+            <Link className="primary" to="/login">
+              Log in
+            </Link>
+          ) : state === "error" ? (
+            <button
+              className="primary"
+              onClick={() => refresh.revalidate()}
+              disabled={refresh.state !== "idle"}
+            >
+              Try again
+            </button>
+          ) : null}
+        </section>
+      ) : (
+        <>
+          <section className="stats">
+            <article>
+              <span>Recorded sessions</span>
+              <strong>{sessions.length}</strong>
+              <small>Across your spreadsheet</small>
+            </article>
+            <article>
+              <span>Latest workout</span>
+              <strong>{sessions[0]?.Workout || "—"}</strong>
+              <small>{sessions[0]?.Date || "No sessions yet"}</small>
+            </article>
+            <article>
+              <span>Exercises tracked</span>
+              <strong>{exercises.length}</strong>
+              <small>Kept separate by equipment</small>
+            </article>
+          </section>
+          <div className="dashboard-grid">
+            <section className="panel">
+              <div className="section-head">
+                <div>
+                  <p className="eyebrow">THE BIG PICTURE</p>
+                  <h2>Exercise progress</h2>
+                </div>
               </div>
-              <a href="https://remix.run">
-                <img
-                  src="https://user-images.githubusercontent.com/1500684/158298926-e45dafff-3544-4b69-96d6-d3bcc33fc76a.svg"
-                  alt="Remix"
-                  className="mx-auto mt-16 w-full max-w-[12rem] md:max-w-[16rem]"
-                />
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-7xl py-2 px-4 sm:px-6 lg:px-8">
-          <div className="mt-6 flex flex-wrap justify-center gap-8">
-            {[
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157764397-ccd8ea10-b8aa-4772-a99b-35de937319e1.svg",
-                alt: "Fly.io",
-                href: "https://fly.io",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157764395-137ec949-382c-43bd-a3c0-0cb8cb22e22d.svg",
-                alt: "SQLite",
-                href: "https://sqlite.org",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157764484-ad64a21a-d7fb-47e3-8669-ec046da20c1f.svg",
-                alt: "Prisma",
-                href: "https://prisma.io",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157764276-a516a239-e377-4a20-b44a-0ac7b65c8c14.svg",
-                alt: "Tailwind",
-                href: "https://tailwindcss.com",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157764454-48ac8c71-a2a9-4b5e-b19c-edef8b8953d6.svg",
-                alt: "Cypress",
-                href: "https://www.cypress.io",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157772386-75444196-0604-4340-af28-53b236faa182.svg",
-                alt: "MSW",
-                href: "https://mswjs.io",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157772447-00fccdce-9d12-46a3-8bb4-fac612cdc949.svg",
-                alt: "Vitest",
-                href: "https://vitest.dev",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157772662-92b0dd3a-453f-4d18-b8be-9fa6efde52cf.png",
-                alt: "Testing Library",
-                href: "https://testing-library.com",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157772934-ce0a943d-e9d0-40f8-97f3-f464c0811643.svg",
-                alt: "Prettier",
-                href: "https://prettier.io",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157772990-3968ff7c-b551-4c55-a25c-046a32709a8e.svg",
-                alt: "ESLint",
-                href: "https://eslint.org",
-              },
-              {
-                src: "https://user-images.githubusercontent.com/1500684/157773063-20a0ed64-b9f8-4e0b-9d1e-0b65a3d4a6db.svg",
-                alt: "TypeScript",
-                href: "https://typescriptlang.org",
-              },
-            ].map((img) => (
-              <a
-                key={img.href}
-                href={img.href}
-                className="flex h-16 w-32 justify-center p-1 grayscale transition hover:grayscale-0 focus:grayscale-0"
+              <label className="select-label" htmlFor="exercise">
+                Exercise & equipment
+              </label>
+              <select
+                id="exercise"
+                value={exercise}
+                onChange={(e) => setSelected(e.target.value)}
               >
-                <img alt={img.alt} src={img.src} className="object-contain" />
-              </a>
-            ))}
+                {exercises.map(([id, r]) => (
+                  <option key={id} value={id}>
+                    {r.Exercise} · {r.Equipment} · {r["Load Type"]}
+                  </option>
+                ))}
+              </select>
+              <p className="muted">
+                Heaviest completed working set per session; most reps breaks a
+                tie. Warm-ups, calibration, failures and rest-pause sets
+                excluded.
+              </p>
+              {points.length ? (
+                <>
+                  <div
+                    className="chart"
+                    role="img"
+                    aria-label="Working-set history. Exact weights and reps are listed below."
+                  >
+                    {points.map((p) => {
+                      const amount = p.weight ?? p.reps;
+                      const max = Math.max(
+                        ...points.map((x) => x.weight ?? x.reps),
+                        1
+                      );
+                      return (
+                        <div className="bar-slot" key={p.session}>
+                          <span>{amount}</span>
+                          <div
+                            className="bar"
+                            style={{
+                              height: `${Math.max(3, (amount / max) * 120)}px`,
+                            }}
+                          />
+                          <small>{p.date.replace(/\/\d{4}$/, "")}</small>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Weight</th>
+                          <th>Reps</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {points.map((p) => (
+                          <tr key={p.session}>
+                            <td>{p.date}</td>
+                            <td>
+                              {p.weight === null
+                                ? "Bodyweight"
+                                : `${p.weight} ${
+                                    exercises.find(
+                                      ([id]) => id === exercise
+                                    )?.[1]["Weight Unit"] || ""
+                                  }`}
+                            </td>
+                            <td>{p.reps}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                <p className="empty">
+                  No comparable working sets recorded yet.
+                </p>
+              )}
+            </section>
+            <section className="panel">
+              <p className="eyebrow">YOUR PROGRAM</p>
+              <h2>Training maxes</h2>
+              <p className="muted">
+                Programming values, separate from tested and historical bests.
+              </p>
+              {data.lifts.map((r) => (
+                <div className="lift" key={r.Lift}>
+                  <span>
+                    {r.Lift}
+                    <small>
+                      Program input {value(r["Program 1RM Input"])} lb
+                    </small>
+                  </span>
+                  <strong>
+                    {value(r["Training Max"])}
+                    <small>lb TM</small>
+                  </strong>
+                </div>
+              ))}
+              <div className="note">
+                Keep logging in your spreadsheet. Refresh here to see your
+                updates.
+              </div>
+            </section>
           </div>
-        </div>
-      </div>
+          <section className="panel history">
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">SESSION BY SESSION</p>
+                <h2>Workout history</h2>
+              </div>
+              <label>
+                Workout{" "}
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                >
+                  {["All", ...new Set(sessions.map((s) => s.Workout))].map(
+                    (v) => (
+                      <option key={v}>{v}</option>
+                    )
+                  )}
+                </select>
+              </label>
+            </div>
+            {!visible.length && (
+              <p className="empty">No workouts recorded yet.</p>
+            )}
+            {visible.map((s) => {
+              const sets = data.sets.filter(
+                (r) => r["Session ID"] === s["Session ID"]
+              );
+              const cardio = data.cardio.filter(
+                (r) => r["Session ID"] === s["Session ID"]
+              );
+              return (
+                <details className="session" key={s["Session ID"]}>
+                  <summary>
+                    <span className="session-date">{s.Date}</span>
+                    <span>
+                      <b>
+                        {s.Workout} · {s["Main Lift Focus"] || "Workout"}
+                      </b>
+                      <small>{s.Focus}</small>
+                    </span>
+                    <span className="week">
+                      {s["Program Week"]
+                        ? `Week ${s["Program Week"]}`
+                        : "Session"}{" "}
+                      ＋
+                    </span>
+                  </summary>
+                  <div className="session-body">
+                    <p>{s.Notes}</p>
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Exercise / set</th>
+                            <th>Planned</th>
+                            <th>Actual</th>
+                            <th>Reps</th>
+                            <th>RIR</th>
+                            <th>Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sets.map((r) => (
+                            <tr key={r["Set ID"]}>
+                              <td>
+                                <b>{r.Exercise}</b>
+                                <small>
+                                  {r.Equipment} · {r["Set Type"]}{" "}
+                                  {r["Set Number"]}
+                                  {r["Set Part"]}
+                                </small>
+                              </td>
+                              <td>{value(r["Planned Weight"])}</td>
+                              <td>{loadLabel(r)}</td>
+                              <td>{value(r.Reps)}</td>
+                              <td>{rir(r)}</td>
+                              <td>
+                                {r.Notes || "—"}
+                                {r["Rep Quality"] === "failed"
+                                  ? " · Failed attempt"
+                                  : ""}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {cardio.map((r) => (
+                      <div className="note" key={r["Cardio ID"]}>
+                        <b>{r.Activity}</b> ·{" "}
+                        {number(r["Duration Seconds"]) === null
+                          ? "Duration unknown"
+                          : `${(Number(r["Duration Seconds"]) / 60).toFixed(
+                              1
+                            )} min`}{" "}
+                        · Incline {value(r.Incline)} · {value(r["Speed MPH"])}{" "}
+                        mph<p>{r.Notes}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
+          </section>
+          <section className="panel">
+            <p className="eyebrow">PERSONAL RECORDS</p>
+            <h2>Your bests, preserved.</h2>
+            <p className="muted">
+              Historical rep records from your spreadsheet. Estimated 1RM is not
+              a tested max.
+            </p>
+            <div className="pr-grid">
+              {[...new Set(data.prs.map((r) => r.Lift))].map((lift) => (
+                <details key={lift}>
+                  <summary>
+                    {lift} <span>Rep records ＋</span>
+                  </summary>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Reps</th>
+                        <th>Best · lb</th>
+                        <th>Est. 1RM</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.prs
+                        .filter(
+                          (r) =>
+                            r.Lift === lift &&
+                            number(r["Rep Max"]) !== null &&
+                            Number(r["Rep Max"]) > 0
+                        )
+                        .map((r) => (
+                          <tr key={r.Reps}>
+                            <td>{r.Reps}</td>
+                            <td>{r["Rep Max"]}</td>
+                            <td>
+                              {number(r["Est. 1RM"]) === null
+                                ? "—"
+                                : Number(r["Est. 1RM"]).toFixed(1)}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </details>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+      <footer>FORM / A little more perspective on the work you put in.</footer>
     </main>
   );
 }

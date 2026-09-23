@@ -1,0 +1,373 @@
+.tracker {
+  --ink: #1e302c;
+  --muted: #67736e;
+  --line: #dfe5dc;
+  --accent: #346347;
+  background: #f4f5ef;
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 0 max(22px, calc((100vw - 1180px) / 2));
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.tracker * {
+  box-sizing: border-box;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line);
+  gap: 16px;
+}
+.brand {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+.brand span {
+  display: inline-block;
+  margin-left: 18px;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.actions {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  font-size: 13px;
+}
+.tracker button,
+.tracker select,
+.tracker .primary {
+  min-height: 44px;
+  cursor: pointer;
+}
+.tracker button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.tracker :focus-visible {
+  outline: 3px solid #af7134;
+  outline-offset: 4px;
+}
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 58px 0 36px;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+.tracker h1 {
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.1;
+  letter-spacing: -2.5px;
+  margin: 0 0 16px;
+  font-weight: 650;
+}
+.intro p:not(.eyebrow) {
+  color: var(--muted);
+}
+.sync {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: right;
+}
+.tracker small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.primary {
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: inline-block;
+  font-size: 13px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stats article {
+  border: 1px solid var(--line);
+  padding: 24px;
+  background: #eaf0e4;
+  border-radius: 12px;
+}
+.stats span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.stats strong {
+  display: block;
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin: 12px 0 6px;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 24px;
+}
+.panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 24px;
+  min-width: 0;
+}
+.tracker h2 {
+  font-size: 23px;
+  letter-spacing: -0.7px;
+  font-weight: 650;
+  margin: 0 0 14px;
+}
+.muted,
+.session-body > p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.select-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.tracker select {
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 10px;
+  font-size: 13px;
+}
+.chart {
+  display: flex;
+  gap: 16px;
+  height: 190px;
+  align-items: flex-end;
+  overflow-x: auto;
+  padding: 16px 0 4px;
+  margin: 20px 0;
+}
+.bar-slot {
+  flex: 1;
+  min-width: 50px;
+  text-align: center;
+  font-size: 12px;
+}
+.bar {
+  background: #81a77d;
+  border-radius: 5px 5px 0 0;
+  margin: 6px auto;
+  width: 70%;
+  max-width: 76px;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.tracker table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+.tracker th {
+  font-weight: 500;
+  color: var(--muted);
+  padding: 12px 8px;
+  background: #f6f7f2;
+  white-space: nowrap;
+}
+.tracker td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #edf0e9;
+  vertical-align: top;
+}
+.lift {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.lift > span {
+  font-size: 17px;
+}
+.lift small {
+  margin-top: 5px;
+}
+.lift strong {
+  text-align: right;
+  font-size: 26px;
+  font-weight: 600;
+}
+.note {
+  padding: 16px;
+  background: #f4f6ef;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  margin-top: 20px;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.section-head label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.session {
+  border-top: 1px solid var(--line);
+}
+.session summary {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  padding: 24px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.session-date {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 82px;
+}
+.session summary b {
+  font-size: 15px;
+  font-weight: 600;
+}
+.session summary small {
+  margin-top: 5px;
+}
+.week {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--accent);
+}
+.session-body {
+  padding-bottom: 20px;
+}
+.session-body table {
+  min-width: 760px;
+}
+.session-body td:last-child {
+  min-width: 220px;
+  max-width: 360px;
+}
+.pr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.pr-grid summary {
+  padding: 18px 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+.pr-grid summary span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 5px;
+}
+.connection {
+  padding: 48px;
+  max-width: 700px;
+  margin: 30px auto 80px;
+}
+.connection p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+.empty {
+  padding: 32px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.tracker footer {
+  padding: 20px 0 40px;
+  font-size: 11px;
+  color: var(--muted);
+}
+@media (max-width: 700px) {
+  .brand span {
+    display: none;
+  }
+  .actions {
+    gap: 12px;
+    font-size: 11px;
+  }
+  .intro {
+    display: block;
+    padding-top: 36px;
+  }
+  .sync {
+    margin-top: 24px;
+    text-align: left;
+    align-items: flex-start;
+  }
+  .stats {
+    gap: 8px;
+  }
+  .stats article {
+    padding: 15px 10px;
+  }
+  .stats span,
+  .stats small {
+    font-size: 10px;
+  }
+  .stats strong {
+    font-size: 24px;
+  }
+  .dashboard-grid,
+  .pr-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .panel {
+    padding: 20px;
+  }
+  .session summary {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .session-date {
+    width: 100%;
+  }
+  .session summary b {
+    font-size: 14px;
+  }
+  .section-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .connection {
+    padding: 28px;
+  }
+  .tracker {
+    padding: 0 16px;
+  }
+}

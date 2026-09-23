@@ -1,5 +1,5 @@
 {
-  "name": "indie-stack-template",
+  "name": "workout-tracker",
   "private": true,
   "sideEffects": false,
   "scripts": {
@@ -30,10 +30,10 @@
   ],
   "dependencies": {
     "@prisma/client": "^4.9.0",
-    "@remix-run/node": "*",
-    "@remix-run/react": "*",
-    "@remix-run/serve": "*",
-    "@remix-run/server-runtime": "*",
+    "@remix-run/node": "1.19.3",
+    "@remix-run/react": "1.19.3",
+    "@remix-run/serve": "1.19.3",
+    "@remix-run/server-runtime": "1.19.3",
     "bcryptjs": "^2.4.3",
     "isbot": "^3.6.5",
     "react": "^18.2.0",
@@ -42,8 +42,8 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
-    "@remix-run/dev": "*",
-    "@remix-run/eslint-config": "*",
+    "@remix-run/dev": "1.19.3",
+    "@remix-run/eslint-config": "1.19.3",
     "@testing-library/cypress": "^8.0.7",
     "@testing-library/dom": "^8.20.0",
     "@testing-library/jest-dom": "^5.16.5",
@@ -82,7 +82,7 @@
     "vitest": "^0.27.2"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=20"
   },
   "prisma": {
     "seed": "ts-node --require tsconfig-paths/register prisma/seed.ts"

@@ -1,180 +1,71 @@
-# Remix Indie Stack
+# Workout Tracker / Form
 
-![The Remix Indie Stack](https://repository-images.githubusercontent.com/465928257/a241fa49-bd4d-485a-a2a5-5cb8e4ee0abf)
+A read-only, responsive workout dashboard built on this repository's Remix app. Continue logging in Google Sheets; refresh the dashboard to see those changes. No workout entry, goal prescriptions, or writes back to the workbook.
 
-Learn more about [Remix Stacks](https://remix.run/stacks).
+## First pass
 
+- Session summaries with expandable individual sets, notes, and cardio.
+- Exercise progress grouped by exercise key, equipment, load type, and unit.
+- Current programming inputs/training maxes and separate historical rep PRs.
+- Signed-out, access-restricted, setup, empty, refresh, and connection-error states.
+- Private server-side Sheets reads, restricted to one existing app user ID.
+
+No personal workout data, spreadsheet ID, or Google credentials are committed. The Google Drive connection used in ChatGPT is not an application credential.
+
+## Run locally
+
+Use Node 22 (Node 20 minimum).
+
+```sh
+npm install
+cp .env.example .env
+npm run setup
+npm run dev
 ```
-npx create-remix@latest --template remix-run/indie-stack
+
+Replace the example SESSION_SECRET with a strong random secret before deployment. `setup` retains the starter's sample user/notes seed; that sample account has **no dashboard access** unless explicitly selected as owner. Never select that sample account for a real workbook.
+
+Create your own account at `/join`. Locate its `id` with `npx prisma studio` and set `WORKOUT_OWNER_USER_ID` to that ID in the server environment. Restart after environment changes. Authorization uses a database ID, not an unverified signup email. Other accounts cannot read the sheet.
+
+## Connect the existing private spreadsheet
+
+1. Enable the Google Sheets API in a Google Cloud project and create a service account.
+2. Store its credentials in server environment secrets:
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`: service account email.
+   - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`: PEM private key (literal newlines or escaped `\n`).
+   - `GOOGLE_SHEETS_ID`: workbook ID from its URL.
+3. Share only that workbook with the service account as **Viewer**. It need not be public or published to the web.
+4. Set `WORKOUT_OWNER_USER_ID` as above, restart, log in, and press **Refresh from sheet**.
+
+The app requests only the `spreadsheets.readonly` scope. Tokens stay on the server. Each authorized page load or refresh reads current sheet values; there is no background polling or claim of real-time updates. Read timestamps show America/New_York time. Workbook edits are not copied into the app database.
+
+Expected tabs and column contracts are in `app/workouts/data.ts`: **Sessions**, **Set Log**, **Cardio Log**, **Lift Status**, and **Rep PRs**. Reads include populated rows across these tables, including rows added after initial setup. A missing tab/header produces a connection error rather than fabricated data. This first pass assumes the current workbook's US date strings and lb-based Lift Status/Rep PRs.
+
+## Data rules
+
+- Unknown numbers remain unknown; zero is a real recorded zero.
+- Actual weight drives progress. Never substitute planned weight.
+- Bodyweight sets show reps without invented weight or tonnage.
+- Progress shows the heaviest eligible set per session, breaking load ties by reps. It is not an estimated-strength score; rep counts remain visible.
+- Warm-up, calibration, failed, and rest-pause sets remain visible in history but are excluded from the progress chart.
+- Unknown rep quality is displayed as recorded, not asserted to be clean.
+- Historical PRs come directly from Rep PRs and are never overwritten by recent sessions.
+- Program weeks come from each session; a repeated week does not advance automatically.
+- Session details preserve original planned/actual loads, independent of current training maxes.
+
+## Validation
+
+```sh
+npm run typecheck
+npm run lint
+npm run test -- --run --threads=false
+npm run build
 ```
 
-## What's in the stack
-
-- [Fly app deployment](https://fly.io) with [Docker](https://www.docker.com/)
-- Production-ready [SQLite Database](https://sqlite.org)
-- Healthcheck endpoint for [Fly backups region fallbacks](https://fly.io/docs/reference/configuration/#services-http_checks)
-- [GitHub Actions](https://github.com/features/actions) for deploy on merge to production and staging environments
-- Email/Password Authentication with [cookie-based sessions](https://remix.run/docs/en/v1/api/remix#createcookiesessionstorage)
-- Database ORM with [Prisma](https://prisma.io)
-- Styling with [Tailwind](https://tailwindcss.com/)
-- End-to-end testing with [Cypress](https://cypress.io)
-- Local third party request mocking with [MSW](https://mswjs.io)
-- Unit testing with [Vitest](https://vitest.dev) and [Testing Library](https://testing-library.com)
-- Code formatting with [Prettier](https://prettier.io)
-- Linting with [ESLint](https://eslint.org)
-- Static Types with [TypeScript](https://typescriptlang.org)
-
-Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own.
-
-## Quickstart
-
-Click this button to create a [Gitpod](https://gitpod.io) workspace with the project set up and Fly pre-installed
-
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/remix-run/indie-stack/tree/main)
-
-## Development
-
-- This step only applies if you've opted out of having the CLI install dependencies for you:
-
-  ```sh
-  npx remix init
-  ```
-
-- Initial setup: _If you just generated this project, this step has been done for you._
-
-  ```sh
-  npm run setup
-  ```
-
-- Start dev server:
-
-  ```sh
-  npm run dev
-  ```
-
-This starts your app in development mode, rebuilding assets on file changes.
-
-The database seed script creates a new user with some data you can use to get started:
-
-- Email: `rachel@remix.run`
-- Password: `racheliscool`
-
-### Relevant code:
-
-This is a pretty simple note-taking app, but it's a good example of how you can build a full stack app with Prisma and Remix. The main functionality is creating users, logging in and out, and creating and deleting notes.
-
-- creating users, and logging in and out [./app/models/user.server.ts](./app/models/user.server.ts)
-- user sessions, and verifying them [./app/session.server.ts](./app/session.server.ts)
-- creating, and deleting notes [./app/models/note.server.ts](./app/models/note.server.ts)
+Unit tests cover blank/zero handling, equipment isolation, excluded set types, bodyweight progression, date ordering, and access control. Existing Cypress coverage preserves signup/login and the starter notes routes.
 
 ## Deployment
 
-This Remix Stack comes with two GitHub Actions that handle automatically deploying your app to production and staging environments.
+The existing Fly/Docker workflow is retained. Node and Remix versions are made reproducible for the existing Remix v1 route structure; dependencies install from the pinned framework version. Main/dev pushes retain the repository's existing automatic deployment behavior. Review and configure server secrets before merging. No deployment is performed by this change. The inherited framework/toolchain is older; upgrading it is separate work from this first dashboard pass.
 
-Prior to your first deployment, you'll need to do a few things:
-
-- [Install Fly](https://fly.io/docs/getting-started/installing-flyctl/)
-
-- Sign up and log in to Fly
-
-  ```sh
-  fly auth signup
-  ```
-
-  > **Note:** If you have more than one Fly account, ensure that you are signed into the same account in the Fly CLI as you are in the browser. In your terminal, run `fly auth whoami` and ensure the email matches the Fly account signed into the browser.
-
-- Create two apps on Fly, one for staging and one for production:
-
-  ```sh
-  fly apps create indie-stack-template
-  fly apps create indie-stack-template-staging
-  ```
-
-  > **Note:** Make sure this name matches the `app` set in your `fly.toml` file. Otherwise, you will not be able to deploy.
-
-  - Initialize Git.
-
-  ```sh
-  git init
-  ```
-
-- Create a new [GitHub Repository](https://repo.new), and then add it as the remote for your project. **Do not push your app yet!**
-
-  ```sh
-  git remote add origin <ORIGIN_URL>
-  ```
-
-- Add a `FLY_API_TOKEN` to your GitHub repo. To do this, go to your user settings on Fly and create a new [token](https://web.fly.io/user/personal_access_tokens/new), then add it to [your repo secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) with the name `FLY_API_TOKEN`.
-
-- Add a `SESSION_SECRET` to your fly app secrets, to do this you can run the following commands:
-
-  ```sh
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app indie-stack-template
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) --app indie-stack-template-staging
-  ```
-
-  If you don't have openssl installed, you can also use [1password](https://1password.com/password-generator/) to generate a random secret, just replace `$(openssl rand -hex 32)` with the generated secret.
-
-- Create a persistent volume for the sqlite database for both your staging and production environments. Run the following:
-
-  ```sh
-  fly volumes create data --size 1 --app indie-stack-template
-  fly volumes create data --size 1 --app indie-stack-template-staging
-  ```
-
-Now that everything is set up you can commit and push your changes to your repo. Every commit to your `main` branch will trigger a deployment to your production environment, and every commit to your `dev` branch will trigger a deployment to your staging environment.
-
-### Connecting to your database
-
-The sqlite database lives at `/data/sqlite.db` in your deployed application. You can connect to the live database by running `fly ssh console -C database-cli`.
-
-### Getting Help with Deployment
-
-If you run into any issues deploying to Fly, make sure you've followed all of the steps above and if you have, then post as many details about your deployment (including your app name) to [the Fly support community](https://community.fly.io). They're normally pretty responsive over there and hopefully can help resolve any of your deployment issues and questions.
-
-## GitHub Actions
-
-We use GitHub Actions for continuous integration and deployment. Anything that gets into the `main` branch will be deployed to production after running tests/build/etc. Anything in the `dev` branch will be deployed to staging.
-
-## Testing
-
-### Cypress
-
-We use Cypress for our End-to-End tests in this project. You'll find those in the `cypress` directory. As you make changes, add to an existing file or create a new file in the `cypress/e2e` directory to test your changes.
-
-We use [`@testing-library/cypress`](https://testing-library.com/cypress) for selecting elements on the page semantically.
-
-To run these tests in development, run `npm run test:e2e:dev` which will start the dev server for the app as well as the Cypress client. Make sure the database is running in docker as described above.
-
-We have a utility for testing authenticated features without having to go through the login flow:
-
-```ts
-cy.login();
-// you are now logged in as a new user
-```
-
-We also have a utility to auto-delete the user at the end of your test. Just make sure to add this in each test file:
-
-```ts
-afterEach(() => {
-  cy.cleanupUser();
-});
-```
-
-That way, we can keep your local db clean and keep your tests isolated from one another.
-
-### Vitest
-
-For lower level tests of utilities and individual components, we use `vitest`. We have DOM-specific assertion helpers via [`@testing-library/jest-dom`](https://testing-library.com/jest-dom).
-
-### Type Checking
-
-This project uses TypeScript. It's recommended to get TypeScript set up for your editor to get a really great in-editor experience with type checking and auto-complete. To run type checking across the whole project, run `npm run typecheck`.
-
-### Linting
-
-This project uses ESLint for linting. That is configured in `.eslintrc.js`.
-
-### Formatting
-
-We use [Prettier](https://prettier.io/) for auto-formatting in this project. It's recommended to install an editor plugin (like the [VSCode Prettier plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)) to get auto-formatting on save. There's also a `npm run format` script you can run to format all files in the project.
+Google API references: [read values](https://developers.google.com/workspace/sheets/api/guides/values), [batchGet](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/batchGet), [service account authorization](https://developers.google.com/identity/protocols/oauth2/service-account).

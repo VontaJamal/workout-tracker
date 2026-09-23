@@ -15,13 +15,14 @@ describe("smoke tests", () => {
 
     cy.visitAndCheck("/");
 
+    cy.findByRole("link", { name: /log in/i }).click();
     cy.findByRole("link", { name: /sign up/i }).click();
 
     cy.findByRole("textbox", { name: /email/i }).type(loginForm.email);
     cy.findByLabelText(/password/i).type(loginForm.password);
     cy.findByRole("button", { name: /create account/i }).click();
 
-    cy.findByRole("link", { name: /notes/i }).click();
+    cy.visitAndCheck("/notes");
     cy.findByRole("button", { name: /logout/i }).click();
     cy.findByRole("link", { name: /log in/i });
   });
@@ -35,7 +36,7 @@ describe("smoke tests", () => {
 
     cy.visitAndCheck("/");
 
-    cy.findByRole("link", { name: /notes/i }).click();
+    cy.visitAndCheck("/notes");
     cy.findByText("No notes yet");
 
     cy.findByRole("link", { name: /\+ new note/i }).click();
