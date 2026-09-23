@@ -195,9 +195,9 @@ export default function Index() {
                   </span>
                 </div>
                 <p className="muted">
-                  Each tile is a day. Pick one to see your sessions.
+                  Pick a day to open your workouts, sets, and notes.
                 </p>
-                <ActivityCalendar summary={summary} />
+                <ActivityCalendar summary={summary} data={data} />
                 {summary.undatedSessions > 0 && (
                   <p className="data-note">
                     {summary.undatedSessions} session(s) have an unreadable date

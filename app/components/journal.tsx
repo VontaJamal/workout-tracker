@@ -1,21 +1,8 @@
-import { useState } from "react";
 import { number } from "~/workouts/data";
-import type { Row, Workbook } from "~/workouts/data";
+import { SessionDetails } from "./session-details";
+import { useState } from "react";
+import type { Workbook } from "~/workouts/data";
 import { uniqueSessions } from "~/workouts/overview";
-function value(v: string | undefined) {
-  return v === "" || v == null ? "—" : v;
-}
-function loadLabel(r: Row) {
-  return r["Load Type"] === "bodyweight"
-    ? "BW"
-    : `${value(r["Actual Weight"])} ${r["Weight Unit"] || ""}`;
-}
-function rir(r: Row) {
-  const a = r["RIR Min"],
-    b = r["RIR Max"];
-  return a && b && a !== b ? `${a}–${b}` : a || b || "—";
-}
-
 export function Journal({ data }: { data: Workbook }) {
   const [filter, setFilter] = useState("All");
   const [limit, setLimit] = useState(8);
@@ -50,12 +37,6 @@ export function Journal({ data }: { data: Workbook }) {
       </div>
       {!visible.length && <p className="empty">No workouts recorded yet.</p>}
       {visible.slice(0, limit).map((s) => {
-        const sets = data.sets.filter(
-          (r) => r["Session ID"] === s["Session ID"]
-        );
-        const cardio = data.cardio.filter(
-          (r) => r["Session ID"] === s["Session ID"]
-        );
         return (
           <details className="session" key={s["Session ID"]}>
             <summary>
@@ -70,60 +51,7 @@ export function Journal({ data }: { data: Workbook }) {
                 {s["Program Week"] ? `Week ${s["Program Week"]}` : "Session"} ＋
               </span>
             </summary>
-            <div className="session-body">
-              <p>{s.Notes}</p>
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Exercise / set</th>
-                      <th>Planned</th>
-                      <th>Actual</th>
-                      <th>Reps</th>
-                      <th>RIR</th>
-                      <th>Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sets.map((r) => (
-                      <tr key={r["Set ID"]}>
-                        <td>
-                          <b>{r.Exercise}</b>
-                          <small>
-                            {r.Equipment} · {r["Set Type"]} {r["Set Number"]}
-                            {r["Set Part"]}
-                          </small>
-                        </td>
-                        <td>{value(r["Planned Weight"])}</td>
-                        <td>{loadLabel(r)}</td>
-                        <td>{value(r.Reps)}</td>
-                        <td>{rir(r)}</td>
-                        <td>
-                          {r.Notes || "—"}
-                          {r["Rep Quality"] === "failed"
-                            ? " · Failed attempt"
-                            : r["Rep Quality"]
-                            ? ` · Rep quality: ${r["Rep Quality"]}`
-                            : ""}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {cardio.map((r) => (
-                <div className="note" key={r["Cardio ID"]}>
-                  <b>{r.Activity}</b> ·{" "}
-                  {number(r["Duration Seconds"]) === null
-                    ? "Duration unknown"
-                    : `${(number(r["Duration Seconds"])! / 60).toFixed(
-                        1
-                      )} min`}{" "}
-                  · Incline {value(r.Incline)} · {value(r["Speed MPH"])} mph
-                  <p>{r.Notes}</p>
-                </div>
-              ))}
-            </div>
+            <SessionDetails session={s} data={data} />
           </details>
         );
       })}

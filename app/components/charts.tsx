@@ -1,10 +1,18 @@
+import { DayWorkouts } from "./day-workouts";
 import { useEffect, useId, useRef, useState } from "react";
-import type { progress } from "~/workouts/data";
+import type { progress, Workbook } from "~/workouts/data";
 import { addDays, shortDate } from "~/workouts/overview";
 import type { overview, Week } from "~/workouts/overview";
 
 type Overview = ReturnType<typeof overview>;
-export function ActivityCalendar({ summary }: { summary: Overview }) {
+export function ActivityCalendar({
+  summary,
+  data,
+}: {
+  summary: Overview;
+  data: Workbook;
+}) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selected, setSelected] = useState("");
   const date =
     selected >= summary.start && selected <= summary.today
@@ -15,6 +23,7 @@ export function ActivityCalendar({ summary }: { summary: Overview }) {
   const scroll = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scroll.current) scroll.current.scrollLeft = scroll.current.scrollWidth;
+    setDetailsOpen(false);
   }, [summary.start, summary.today]);
   return (
     <>
@@ -66,7 +75,11 @@ export function ActivityCalendar({ summary }: { summary: Overview }) {
                     }`}
                     aria-pressed={date === key}
                     aria-describedby={statusId}
-                    onClick={() => setSelected(key)}
+                    aria-haspopup="dialog"
+                    onClick={() => {
+                      setSelected(key);
+                      setDetailsOpen(true);
+                    }}
                   >
                     {n > 0 ? <span>{n}</span> : null}
                   </button>
@@ -94,6 +107,13 @@ export function ActivityCalendar({ summary }: { summary: Overview }) {
           <i /> More
         </div>
       </div>
+      {detailsOpen && (
+        <DayWorkouts
+          date={selected}
+          data={data}
+          onClose={() => setDetailsOpen(false)}
+        />
+      )}
     </>
   );
 }

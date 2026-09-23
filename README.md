@@ -5,6 +5,7 @@ A read-only, responsive workout dashboard built on this repository's Remix app. 
 ## Dashboard
 
 - A colorful consistency overview with an activity calendar, weekly sessions, cardio minutes, and strength trends.
+- Select a calendar day to open its workouts, full set details, notes, and cardio. Multiple sessions appear together; mobile set cards keep the numbers readable.
 - Shared 4, 12, and 26 week ranges, anchored to the latest sheet read in Eastern Time. Weeks start Monday and the current week is labeled partial.
 - Session summaries with expandable individual sets, notes, and cardio. History shows eight workouts at a time; Show more keeps older workouts accessible independently of the chart range.
 - Exercise progress grouped by exercise key, equipment, load type, and unit.

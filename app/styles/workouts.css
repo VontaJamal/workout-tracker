@@ -1463,3 +1463,131 @@
     order: -1;
   }
 }
+
+.workout-dialog {
+  color: var(--ink);
+  background: #fffcf8;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  width: min(920px, calc(100vw - 40px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  margin: auto;
+  overflow-y: auto;
+  box-shadow: 0 24px 100px #25203b33;
+}
+.workout-dialog::backdrop {
+  background: #25203b88;
+}
+.day-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f0e8ff;
+  padding: 24px 28px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid #ded0f2;
+}
+.day-header h2 {
+  margin-bottom: 0;
+}
+.dialog-close {
+  background: white;
+  color: var(--ink);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dialog-close:hover {
+  background: #e3d4fc;
+}
+.day-content {
+  padding: 0 28px;
+}
+.day-session {
+  padding: 24px 0 0;
+}
+.day-session + .day-session {
+  border-top: 1px solid var(--line);
+}
+.day-session-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.day-session h3 {
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+.workout-dialog .session-body td:last-child {
+  max-width: none;
+}
+@media (max-width: 760px) {
+  .workout-dialog {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 18px;
+  }
+  .day-header {
+    padding: 20px 18px 16px;
+  }
+  .day-content {
+    padding: 0 18px;
+  }
+  .day-session-title {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .day-session h3 {
+    font-size: 18px;
+  }
+  .workout-dialog .session-body table {
+    min-width: 0;
+  }
+  .workout-dialog .session-body thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .workout-dialog .session-body tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white;
+    margin: 12px 0;
+    padding: 12px;
+    gap: 12px;
+  }
+  .workout-dialog .session-body td {
+    display: block;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .workout-dialog .session-body td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .workout-dialog .session-body td:first-child {
+    grid-column: 1 / -1;
+  }
+  .workout-dialog .session-body td:last-child {
+    min-width: 0;
+    grid-column: span 2;
+  }
+}
