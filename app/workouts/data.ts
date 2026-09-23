@@ -20,6 +20,7 @@ export const tables = [
     headers: [
       "Set ID",
       "Session ID",
+      "Date",
       "Actual Weight",
       "Reps",
       "Exercise Key",
@@ -63,7 +64,13 @@ export function rows(values: unknown[][], required: readonly string[]): Row[] {
 }
 export function number(value: string | undefined): number | null {
   if (value == null || value.trim() === "") return null;
-  const n = Number(value);
+  const trimmed = value.trim();
+  if (
+    trimmed.includes(",") &&
+    !/^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(trimmed)
+  )
+    return null;
+  const n = Number(trimmed.replace(/,/g, ""));
   return Number.isFinite(n) ? n : null;
 }
 export function dateKey(value: string): string {

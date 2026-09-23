@@ -1,4 +1,4 @@
-import { exerciseId, number, progress, rows } from "./data";
+import { exerciseId, number, progress, rows, tables } from "./data";
 import type { Row } from "./data";
 const set = (extra: Row = {}): Row => ({
   "Session ID": "s1",
@@ -15,6 +15,8 @@ const set = (extra: Row = {}): Row => ({
 });
 it("preserves missing values and real zeros", () => {
   expect(number("")).toBeNull();
+  expect(number("   ")).toBeNull();
+  expect(number(undefined)).toBeNull();
   expect(number("0")).toBe(0);
   expect(rows([["Reps"], [0]], ["Reps"])[0].Reps).toBe("0");
 });
@@ -50,4 +52,43 @@ it("keeps bodyweight unweighted and orders sessions by calendar date", () => {
     ["earlier", null, 12],
     ["later", null, 9],
   ]);
+});
+
+it("parses grouped US numbers without treating malformed groups as valid", () => {
+  expect(number("1,200")).toBe(1200);
+  expect(number("1,234.5")).toBe(1234.5);
+  expect(number(" -1,234,567.5 ")).toBe(-1234567.5);
+  expect(number("+1,200")).toBe(1200);
+  for (const malformed of [
+    "1,2",
+    "12,34",
+    "1234,567",
+    "1,,200",
+    "1,200,",
+    "1.200,5",
+  ])
+    expect(number(malformed)).toBeNull();
+  const recorded = set({ "Actual Weight": "1,000" });
+  expect(progress([recorded], exerciseId(recorded))[0]?.weight).toBe(1000);
+});
+it("rejects Set Log rows without the Date column before rendering progress", () => {
+  const required = tables.find((table) => table.key === "sets")!.headers;
+  const headers = [
+    "Set ID",
+    "Session ID",
+    "Actual Weight",
+    "Reps",
+    "Exercise Key",
+    "Equipment",
+    "Load Type",
+  ];
+  expect(() =>
+    rows(
+      [
+        headers,
+        ["s1", "session1", 100, 5, "bench", "Barbell", "barbell_total"],
+      ],
+      required
+    )
+  ).toThrow();
 });
