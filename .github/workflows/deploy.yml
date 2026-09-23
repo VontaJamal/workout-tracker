@@ -161,12 +161,38 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: ${{ github.event_name == 'push' }}
+          load: true
           tags: registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.event_name == 'pull_request' && 'pr' || github.ref_name }}-${{ github.sha }}
           build-args: |
             COMMIT_SHA=${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+      - name: Verify production startup without network
+        env:
+          IMAGE: registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.event_name == 'pull_request' && 'pr' || github.ref_name }}-${{ github.sha }}
+        run: |
+          set -eu
+          container_id=$(docker run -d --network none --memory 256m --memory-swap 256m -e SESSION_SECRET=container-smoke-only -e DATABASE_URL=file:/tmp/smoke.db "$IMAGE")
+          trap 'docker logs "$container_id"; docker rm -f "$container_id" >/dev/null' EXIT
+          docker exec "$container_id" node -e '
+            (async () => {
+              for (let attempt = 0; attempt < 60; attempt++) {
+                try {
+                  const response = await fetch("http://127.0.0.1:8080/healthcheck");
+                  if (response.ok) process.exit(0);
+                } catch {}
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+              }
+              throw new Error("Production container failed its offline startup check");
+            })().catch((error) => { console.error(error); process.exit(1); });
+          '
+
+      - name: Publish verified production image
+        if: ${{ github.event_name == 'push' }}
+        env:
+          IMAGE: registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}
+        run: docker push "$IMAGE"
 
       # This ugly bit is necessary if you don't want your cache to grow forever
       # till it hits GitHub's limit of 5GB.
@@ -203,7 +229,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/dev' }}
         uses: superfly/flyctl-actions@1.3
         with:
-          args: "deploy --app ${{ steps.app_name.outputs.value }}-staging --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
+          args: "deploy --ha=false --app ${{ steps.app_name.outputs.value }}-staging --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -211,6 +237,6 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: superfly/flyctl-actions@1.3
         with:
-          args: "deploy --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
+          args: "deploy --ha=false --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}-${{ github.sha }}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
