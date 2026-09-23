@@ -360,6 +360,8 @@ export default function Index() {
                                 {r.Notes || "—"}
                                 {r["Rep Quality"] === "failed"
                                   ? " · Failed attempt"
+                                  : r["Rep Quality"]
+                                  ? ` · Rep quality: ${r["Rep Quality"]}`
                                   : ""}
                               </td>
                             </tr>
@@ -372,7 +374,7 @@ export default function Index() {
                         <b>{r.Activity}</b> ·{" "}
                         {number(r["Duration Seconds"]) === null
                           ? "Duration unknown"
-                          : `${(Number(r["Duration Seconds"]) / 60).toFixed(
+                          : `${(number(r["Duration Seconds"])! / 60).toFixed(
                               1
                             )} min`}{" "}
                         · Incline {value(r.Incline)} · {value(r["Speed MPH"])}{" "}
@@ -409,9 +411,7 @@ export default function Index() {
                       {data.prs
                         .filter(
                           (r) =>
-                            r.Lift === lift &&
-                            number(r["Rep Max"]) !== null &&
-                            Number(r["Rep Max"]) > 0
+                            r.Lift === lift && (number(r["Rep Max"]) ?? 0) > 0
                         )
                         .map((r) => (
                           <tr key={r.Reps}>
@@ -420,7 +420,7 @@ export default function Index() {
                             <td>
                               {number(r["Est. 1RM"]) === null
                                 ? "—"
-                                : Number(r["Est. 1RM"]).toFixed(1)}
+                                : number(r["Est. 1RM"])!.toFixed(1)}
                             </td>
                           </tr>
                         ))}
