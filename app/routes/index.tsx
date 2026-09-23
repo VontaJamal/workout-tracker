@@ -1,4 +1,3 @@
-import { dashboardData } from "../workouts/dashboard.server";
 import type {
   HeadersFunction,
   LinksFunction,
@@ -7,10 +6,24 @@ import type {
 import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData, useRevalidator } from "@remix-run/react";
 import { useState } from "react";
-import { getUser } from "../session.server";
-import { configured, readWorkbook } from "../workouts/sheets.server";
-import { dateKey, exerciseId, number, progress } from "~/workouts/data";
-import type { Row } from "~/workouts/data";
+import { getUser } from "~/session.server";
+import { dashboardData } from "~/workouts/dashboard.server";
+import { configured, readWorkbook } from "~/workouts/sheets.server";
+import { exerciseId, progress } from "~/workouts/data";
+import {
+  calendarDate,
+  easternDate,
+  overview,
+  shortDate,
+} from "~/workouts/overview";
+import type { WeekRange } from "~/workouts/overview";
+import { Brand, Spark } from "~/components/brand";
+import {
+  ActivityCalendar,
+  WeeklyChart,
+  StrengthChart,
+} from "~/components/charts";
+import { Journal, Records } from "~/components/journal";
 import styles from "~/styles/workouts.css";
 export const headers: HeadersFunction = () => ({
   "Cache-Control": "private, no-store",
@@ -29,410 +42,387 @@ export async function loader({ request }: LoaderArgs) {
   );
 }
 
-function value(v: string | undefined) {
-  return v === "" || v == null ? "—" : v;
-}
-function loadLabel(r: Row) {
-  return r["Load Type"] === "bodyweight"
-    ? "BW"
-    : `${value(r["Actual Weight"])} ${r["Weight Unit"] || ""}`;
-}
-function rir(r: Row) {
-  const a = r["RIR Min"],
-    b = r["RIR Max"];
-  return a && b && a !== b ? `${a}–${b}` : a || b || "—";
-}
 export default function Index() {
   const { state, error, data, synced, sheetUrl, signedIn } =
     useLoaderData<typeof loader>();
   const refresh = useRevalidator();
+  const [range, setRange] = useState<WeekRange>(12);
   const [selected, setSelected] = useState("");
-  const [filter, setFilter] = useState("All");
+  const ready = state === "ready" && data;
+  const summary = ready ? overview(data, range, easternDate(synced)) : null;
   const exercises = data
     ? [...new Map(data.sets.map((r) => [exerciseId(r), r])).entries()]
     : [];
   const exercise = exercises.some(([id]) => id === selected)
     ? selected
     : exercises[0]?.[0] || "";
-  const points = data ? progress(data.sets, exercise) : [];
-  const sessions = data
-    ? [...data.sessions].sort((a, b) =>
-        dateKey(b.Date).localeCompare(dateKey(a.Date))
-      )
-    : [];
-  const visible = sessions.filter(
-    (s) => filter === "All" || s.Workout === filter
-  );
+  const exerciseRow = exercises.find(([id]) => id === exercise)?.[1];
+  const points =
+    data && summary
+      ? progress(data.sets, exercise).filter((p) => {
+          const date = calendarDate(p.date);
+          return date && date >= summary.start && date <= summary.today;
+        })
+      : [];
+  const busy = refresh.state !== "idle";
   return (
-    <main className="tracker">
+    <div className="tracker">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <header className="topbar">
-        <a className="brand" href="/">
-          FORM<span>WORKOUT JOURNAL</span>
-        </a>
+        <Brand />
+        {ready && (
+          <nav aria-label="Main navigation">
+            <a href="#overview">Overview</a>
+            <a href="#history">Journal</a>
+            <a href="#records">Records</a>
+          </nav>
+        )}
         <div className="actions">
           {sheetUrl && (
-            <a href={sheetUrl} target="_blank" rel="noreferrer">
-              Open spreadsheet ↗
+            <a
+              className="sheet-link"
+              href={sheetUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open spreadsheet <span aria-hidden="true">↗</span>
             </a>
           )}
           {signedIn && (
             <Form method="post" action="/logout">
-              <button>Log out</button>
+              <button className="text-button">Log out</button>
             </Form>
           )}
         </div>
       </header>
-      <section className="intro">
-        <div>
-          <p className="eyebrow">YOUR WORK. IN PERSPECTIVE.</p>
-          <h1>Keep showing up.</h1>
-          <p>Your workouts, your progress. All in one place.</p>
-        </div>
-        {state === "ready" && (
-          <div className="sync">
-            <button
-              className="primary"
-              onClick={() => refresh.revalidate()}
-              disabled={refresh.state !== "idle"}
-            >
-              {refresh.state === "idle" ? "Refresh from sheet" : "Refreshing…"}
-            </button>
-            <small role="status">
-              Read{" "}
-              {new Date(synced).toLocaleString("en-US", {
-                timeZone: "America/New_York",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}{" "}
-              ET
-            </small>
-          </div>
-        )}
-      </section>
-      {state !== "ready" || !data ? (
-        <section className="panel connection">
-          <p className="eyebrow">SPREADSHEET → JOURNAL</p>
-          <h2>
-            {state === "signed-out"
-              ? "Your training, at a glance."
-              : state === "restricted"
-              ? "Private workout journal"
-              : state === "setup"
-              ? "Ready to connect your spreadsheet"
-              : "Connection interrupted"}
-          </h2>
-          <p>
-            {state === "signed-out"
-              ? "Sign in to see your workout history and progress. Keep logging in your spreadsheet."
-              : state === "restricted"
-              ? "This account has not been granted access to the journal."
-              : state === "setup"
-              ? "The dashboard is ready. Finish the private Google Sheets connection to bring your workouts in."
-              : error}
-          </p>
-          {state === "signed-out" ? (
-            <Link className="primary" to="/login">
-              Log in
-            </Link>
-          ) : state === "error" ? (
-            <button
-              className="primary"
-              onClick={() => refresh.revalidate()}
-              disabled={refresh.state !== "idle"}
-            >
-              Try again
-            </button>
-          ) : null}
-        </section>
-      ) : (
-        <>
-          <section className="stats">
-            <article>
-              <span>Recorded sessions</span>
-              <strong>{sessions.length}</strong>
-              <small>Across your spreadsheet</small>
-            </article>
-            <article>
-              <span>Latest workout</span>
-              <strong>{sessions[0]?.Workout || "—"}</strong>
-              <small>{sessions[0]?.Date || "No sessions yet"}</small>
-            </article>
-            <article>
-              <span>Exercises tracked</span>
-              <strong>{exercises.length}</strong>
-              <small>Kept separate by equipment</small>
-            </article>
-          </section>
-          <div className="dashboard-grid">
-            <section className="panel">
-              <div className="section-head">
-                <div>
-                  <p className="eyebrow">THE BIG PICTURE</p>
-                  <h2>Exercise progress</h2>
-                </div>
-              </div>
-              <label className="select-label" htmlFor="exercise">
-                Exercise & equipment
-              </label>
-              <select
-                id="exercise"
-                value={exercise}
-                onChange={(e) => setSelected(e.target.value)}
-              >
-                {exercises.map(([id, r]) => (
-                  <option key={id} value={id}>
-                    {r.Exercise} · {r.Equipment} · {r["Load Type"]}
-                  </option>
-                ))}
-              </select>
-              <p className="muted">
-                Heaviest completed working set per session; most reps breaks a
-                tie. Warm-ups, calibration, failures and rest-pause sets
-                excluded.
-              </p>
-              {points.length ? (
-                <>
-                  <div
-                    className="chart"
-                    role="img"
-                    aria-label="Working-set history. Exact weights and reps are listed below."
-                  >
-                    {points.map((p) => {
-                      const amount = p.weight ?? p.reps;
-                      const max = Math.max(
-                        ...points.map((x) => x.weight ?? x.reps),
-                        1
-                      );
-                      return (
-                        <div className="bar-slot" key={p.session}>
-                          <span>{amount}</span>
-                          <div
-                            className="bar"
-                            style={{
-                              height: `${Math.max(3, (amount / max) * 120)}px`,
-                            }}
-                          />
-                          <small>{p.date.replace(/\/\d{4}$/, "")}</small>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Weight</th>
-                          <th>Reps</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {points.map((p) => (
-                          <tr key={p.session}>
-                            <td>{p.date}</td>
-                            <td>
-                              {p.weight === null
-                                ? "Bodyweight"
-                                : `${p.weight} ${
-                                    exercises.find(
-                                      ([id]) => id === exercise
-                                    )?.[1]["Weight Unit"] || ""
-                                  }`}
-                            </td>
-                            <td>{p.reps}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              ) : (
-                <p className="empty">
-                  No comparable working sets recorded yet.
-                </p>
-              )}
-            </section>
-            <section className="panel">
-              <p className="eyebrow">YOUR PROGRAM</p>
-              <h2>Training maxes</h2>
-              <p className="muted">
-                Programming values, separate from tested and historical bests.
-              </p>
-              {data.lifts.map((r) => (
-                <div className="lift" key={r.Lift}>
-                  <span>
-                    {r.Lift}
-                    <small>
-                      Program input {value(r["Program 1RM Input"])} lb
-                    </small>
-                  </span>
-                  <strong>
-                    {value(r["Training Max"])}
-                    <small>lb TM</small>
-                  </strong>
-                </div>
-              ))}
-              <div className="note">
-                Keep logging in your spreadsheet. Refresh here to see your
-                updates.
-              </div>
-            </section>
-          </div>
-          <section className="panel history">
-            <div className="section-head">
+      <main id="main">
+        {ready && summary ? (
+          <>
+            <section className="intro" id="overview">
               <div>
-                <p className="eyebrow">SESSION BY SESSION</p>
-                <h2>Workout history</h2>
+                <p className="eyebrow">YOUR TRAINING, IN FULL COLOR</p>
+                <h1>
+                  Find your rhythm<span className="heading-dot">.</span>
+                </h1>
+                <p>A little perspective on the work you put in.</p>
               </div>
-              <label>
-                Workout{" "}
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
+              <div className="sync">
+                <button
+                  className="refresh-button"
+                  onClick={() => refresh.revalidate()}
+                  disabled={busy}
                 >
-                  {["All", ...new Set(sessions.map((s) => s.Workout))].map(
-                    (v) => (
-                      <option key={v}>{v}</option>
-                    )
-                  )}
-                </select>
-              </label>
+                  <span
+                    className={busy ? "refresh-icon spinning" : "refresh-icon"}
+                    aria-hidden="true"
+                  >
+                    ↻
+                  </span>
+                  {busy ? "Refreshing…" : "Refresh from sheet"}
+                </button>
+                <small role="status">
+                  {busy
+                    ? "Reading your latest workouts…"
+                    : `Updated ${new Date(synced).toLocaleString("en-US", {
+                        timeZone: "America/New_York",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })} ET`}
+                </small>
+              </div>
+            </section>
+            <div className="overview-toolbar">
+              <p>
+                <span className="status-dot" />
+                {shortDate(summary.start)} to {shortDate(summary.today)},{" "}
+                {summary.today.slice(0, 4)}
+              </p>
+              <div
+                className="range-switch"
+                role="group"
+                aria-label="Overview date range"
+              >
+                {([4, 12, 26] as const).map((weeks) => (
+                  <button
+                    key={weeks}
+                    aria-pressed={range === weeks}
+                    onClick={() => setRange(weeks)}
+                  >
+                    {weeks} weeks
+                  </button>
+                ))}
+              </div>
             </div>
-            {!visible.length && (
-              <p className="empty">No workouts recorded yet.</p>
-            )}
-            {visible.map((s) => {
-              const sets = data.sets.filter(
-                (r) => r["Session ID"] === s["Session ID"]
-              );
-              const cardio = data.cardio.filter(
-                (r) => r["Session ID"] === s["Session ID"]
-              );
-              return (
-                <details className="session" key={s["Session ID"]}>
-                  <summary>
-                    <span className="session-date">{s.Date}</span>
-                    <span>
-                      <b>
-                        {s.Workout} · {s["Main Lift Focus"] || "Workout"}
-                      </b>
-                      <small>{s.Focus}</small>
-                    </span>
-                    <span className="week">
-                      {s["Program Week"]
-                        ? `Week ${s["Program Week"]}`
-                        : "Session"}{" "}
-                      ＋
-                    </span>
-                  </summary>
-                  <div className="session-body">
-                    <p>{s.Notes}</p>
-                    <div className="table-wrap">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Exercise / set</th>
-                            <th>Planned</th>
-                            <th>Actual</th>
-                            <th>Reps</th>
-                            <th>RIR</th>
-                            <th>Notes</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {sets.map((r) => (
-                            <tr key={r["Set ID"]}>
-                              <td>
-                                <b>{r.Exercise}</b>
-                                <small>
-                                  {r.Equipment} · {r["Set Type"]}{" "}
-                                  {r["Set Number"]}
-                                  {r["Set Part"]}
-                                </small>
-                              </td>
-                              <td>{value(r["Planned Weight"])}</td>
-                              <td>{loadLabel(r)}</td>
-                              <td>{value(r.Reps)}</td>
-                              <td>{rir(r)}</td>
-                              <td>
-                                {r.Notes || "—"}
-                                {r["Rep Quality"] === "failed"
-                                  ? " · Failed attempt"
-                                  : r["Rep Quality"]
-                                  ? ` · Rep quality: ${r["Rep Quality"]}`
-                                  : ""}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {cardio.map((r) => (
-                      <div className="note" key={r["Cardio ID"]}>
-                        <b>{r.Activity}</b> ·{" "}
-                        {number(r["Duration Seconds"]) === null
-                          ? "Duration unknown"
-                          : `${(number(r["Duration Seconds"])! / 60).toFixed(
-                              1
-                            )} min`}{" "}
-                        · Incline {value(r.Incline)} · {value(r["Speed MPH"])}{" "}
-                        mph<p>{r.Notes}</p>
-                      </div>
-                    ))}
+            <div className="hero-grid" aria-busy={busy}>
+              <section className="rhythm-card">
+                <div className="card-topline">
+                  <span>SHOWING UP</span>
+                  <Spark />
+                </div>
+                <div className="hero-number">
+                  {summary.trainingDays}
+                  <span>training days</span>
+                </div>
+                <p className="hero-message">
+                  {summary.trainingDays
+                    ? "You made time for movement."
+                    : "Your next session starts the story."}
+                </p>
+                <div className="hero-bottom">
+                  <div>
+                    <strong>{summary.sessionCount}</strong>
+                    <span>recorded sessions</span>
                   </div>
-                </details>
-              );
-            })}
-          </section>
-          <section className="panel">
-            <p className="eyebrow">PERSONAL RECORDS</p>
-            <h2>Your bests, preserved.</h2>
-            <p className="muted">
-              Historical rep records from your spreadsheet. Estimated 1RM is not
-              a tested max.
-            </p>
-            <div className="pr-grid">
-              {[...new Set(data.prs.map((r) => r.Lift))].map((lift) => (
-                <details key={lift}>
-                  <summary>
-                    {lift} <span>Rep records ＋</span>
-                  </summary>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Reps</th>
-                        <th>Best · lb</th>
-                        <th>Est. 1RM</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.prs
-                        .filter(
-                          (r) =>
-                            r.Lift === lift && (number(r["Rep Max"]) ?? 0) > 0
-                        )
-                        .map((r) => (
-                          <tr key={r.Reps}>
-                            <td>{r.Reps}</td>
-                            <td>{r["Rep Max"]}</td>
-                            <td>
-                              {number(r["Est. 1RM"]) === null
-                                ? "—"
-                                : number(r["Est. 1RM"])!.toFixed(1)}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </details>
-              ))}
+                  <div>
+                    <strong>{range}</strong>
+                    <span>weeks in view</span>
+                  </div>
+                </div>
+                <span className="hero-orbit" aria-hidden="true" />
+              </section>
+              <section className="panel activity-panel">
+                <div className="section-head">
+                  <div>
+                    <p className="eyebrow">ONE DAY AT A TIME</p>
+                    <h2>Your activity</h2>
+                  </div>
+                  <span className="pill coral-pill">
+                    {summary.trainingDays} active days
+                  </span>
+                </div>
+                <p className="muted">
+                  Each tile is a day. Pick one to see your sessions.
+                </p>
+                <ActivityCalendar summary={summary} />
+                {summary.undatedSessions > 0 && (
+                  <p className="data-note">
+                    {summary.undatedSessions} session(s) have an unreadable date
+                    and are only shown in your journal.
+                  </p>
+                )}
+              </section>
+            </div>
+            <div className="latest-strip">
+              <span className="latest-icon" aria-hidden="true">
+                ↗
+              </span>
+              <span>
+                <small>LATEST WORKOUT</small>
+                <b>
+                  {summary.latest
+                    ? `${summary.latest.Workout}${
+                        summary.latest["Main Lift Focus"]
+                          ? ` · ${summary.latest["Main Lift Focus"]}`
+                          : ""
+                      }`
+                    : "Your journal is ready"}
+                </b>
+              </span>
+              <span className="latest-date">
+                {summary.latest
+                  ? shortDate(calendarDate(summary.latest.Date)!)
+                  : "No sessions recorded yet"}
+              </span>
+              <a href="#history">
+                View journal <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+            <div className="chart-grid" aria-busy={busy}>
+              <section className="panel">
+                <div className="section-head">
+                  <div>
+                    <p className="eyebrow">BUILD YOUR ROUTINE</p>
+                    <h2>Week by week</h2>
+                  </div>
+                  <span className="chart-icon violet-icon" aria-hidden="true">
+                    ▥
+                  </span>
+                </div>
+                <div className="chart-stat">
+                  <strong>{summary.sessionCount}</strong>
+                  <span>sessions recorded</span>
+                </div>
+                <WeeklyChart weeks={summary.weeks} metric="sessions" />
+                <p className="data-note">
+                  Weeks start Monday. The current week is partial.
+                </p>
+              </section>
+              <section className="panel">
+                <div className="section-head">
+                  <div>
+                    <p className="eyebrow">KEEP MOVING</p>
+                    <h2>Cardio time</h2>
+                  </div>
+                  <span className="chart-icon orange-icon" aria-hidden="true">
+                    ↗
+                  </span>
+                </div>
+                <div className="chart-stat">
+                  <strong>
+                    {summary.knownDurations
+                      ? Number((summary.seconds / 60).toFixed(1))
+                      : "—"}
+                  </strong>
+                  <span>
+                    {summary.unknownDurations
+                      ? "known minutes · incomplete total"
+                      : "recorded minutes"}
+                  </span>
+                </div>
+                <WeeklyChart weeks={summary.weeks} metric="cardio" />
+                <p className="data-note">
+                  {summary.unknownDurations
+                    ? `${summary.unknownDurations} cardio entry(s) have no usable duration. `
+                    : ""}
+                  {summary.undatedCardio
+                    ? `${summary.undatedCardio} cardio entry(s) could not be placed on a date. `
+                    : ""}
+                  Minutes come from your recorded durations.
+                </p>
+              </section>
+            </div>
+            <div className="strength-grid">
+              <section className="panel strength-panel">
+                <div className="section-head">
+                  <div>
+                    <p className="eyebrow">SEE YOUR WORK ADD UP</p>
+                    <h2>Strength progress</h2>
+                  </div>
+                  <span className="pill violet-pill">{range} weeks</span>
+                </div>
+                <label className="select-label" htmlFor="exercise">
+                  Exercise & equipment
+                </label>
+                <select
+                  id="exercise"
+                  value={exercise}
+                  onChange={(e) => setSelected(e.target.value)}
+                  disabled={!exercises.length}
+                >
+                  {!exercises.length && (
+                    <option value="">No exercises recorded</option>
+                  )}
+                  {exercises.map(([id, r]) => (
+                    <option key={id} value={id}>
+                      {r.Exercise} · {r.Equipment} · {r["Load Type"]}
+                      {r["Weight Unit"] ? ` · ${r["Weight Unit"]}` : ""}
+                    </option>
+                  ))}
+                </select>
+                <StrengthChart
+                  key={exercise}
+                  points={points}
+                  unit={exerciseRow?.["Weight Unit"] || ""}
+                  bodyweight={exerciseRow?.["Load Type"] === "bodyweight"}
+                />
+                <p className="data-note">
+                  Heaviest eligible working set per session; reps break ties.
+                  Warm-ups, calibration, failed and rest-pause sets excluded.
+                  Bodyweight shows reps.
+                </p>
+              </section>
+              <section className="program-card">
+                <div className="card-topline">
+                  <span>YOUR PROGRAM</span>
+                  <Spark />
+                </div>
+                <h2>Training maxes</h2>
+                <p>Current programming values from your sheet.</p>
+                <div className="training-lifts">
+                  {data.lifts.map((r) => (
+                    <div className="lift" key={r.Lift}>
+                      <span>
+                        {r.Lift}
+                        <small>
+                          Program input {r["Program 1RM Input"] || "—"} lb
+                        </small>
+                      </span>
+                      <strong>
+                        {r["Training Max"] || "—"}
+                        <small>lb TM</small>
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+                {!data.lifts.length && <p>No training maxes recorded yet.</p>}
+                <p className="program-footnote">
+                  Programming values are separate from tested and historical
+                  bests.
+                </p>
+              </section>
+            </div>
+            <Journal data={data} />
+            <Records data={data} />
+          </>
+        ) : (
+          <section className="connection-layout">
+            <div className="welcome-art">
+              <p className="eyebrow">MEET YOUR WORKOUT JOURNAL</p>
+              <h1>
+                Make your
+                <br />
+                effort visible<span>.</span>
+              </h1>
+              <p>
+                See when you showed up, what you lifted, and how your training
+                adds up.
+              </p>
+              <Spark className="welcome-spark" />
+              <div className="decorative-track" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+            </div>
+            <div className="connection">
+              <p className="eyebrow">YOUR SPACE TO TRAIN</p>
+              <h2>
+                {state === "signed-out"
+                  ? "Welcome to Form."
+                  : state === "restricted"
+                  ? "Private workout journal"
+                  : state === "setup"
+                  ? "Connect your spreadsheet"
+                  : "Connection interrupted"}
+              </h2>
+              <p>
+                {state === "signed-out"
+                  ? "Sign in to see your training. Keep logging in your spreadsheet."
+                  : state === "restricted"
+                  ? "This account has not been granted access to the journal."
+                  : state === "setup"
+                  ? "Finish the private Google Sheets connection to see your workouts here."
+                  : error}
+              </p>
+              {state === "signed-out" ? (
+                <Link className="primary" to="/login">
+                  Log in <span aria-hidden="true">↗</span>
+                </Link>
+              ) : state === "error" ? (
+                <button
+                  className="primary"
+                  onClick={() => refresh.revalidate()}
+                  disabled={busy}
+                >
+                  {busy ? "Retrying…" : "Try again"}
+                </button>
+              ) : null}
+              {busy && <p role="status">Reading your workouts…</p>}
             </div>
           </section>
-        </>
-      )}
-      <footer>FORM / A little more perspective on the work you put in.</footer>
-    </main>
+        )}
+      </main>
+      <footer>
+        <Brand />
+        <p>Keep logging in your sheet. See the bigger picture here.</p>
+        <span>YOUR PACE. YOUR PROGRESS.</span>
+      </footer>
+    </div>
   );
 }
