@@ -133,7 +133,6 @@ function CardioDetails({ row: r }: { row: Row }) {
     ["Speed MPH", "Speed", "mph"],
     ["Incline", "Incline", ""],
   ];
-  const source = r["Data Source"]?.replace(/_/g, " ");
   return (
     <section
       className="cardio-detail"
@@ -167,10 +166,6 @@ function CardioDetails({ row: r }: { row: Row }) {
           );
         })}
       </dl>
-      {source && <p className="data-note">Recorded source: {source}</p>}
-      {r["Distance Source"] && (
-        <p className="data-note">Distance source: {r["Distance Source"]}</p>
-      )}
       <Notes text={r.Notes} />
     </section>
   );

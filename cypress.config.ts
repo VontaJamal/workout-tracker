@@ -7,6 +7,9 @@ export default defineConfig({
       const port = process.env.PORT ?? (isDev ? "3000" : "8811");
       const configOverrides: Partial<Cypress.PluginConfigOptions> = {
         baseUrl: `http://localhost:${port}`,
+        excludeSpecPattern: config.env.dashboardPreview
+          ? []
+          : ["**/dashboard.cy.ts"],
         video: !process.env.CI,
         screenshotOnRunFailure: !process.env.CI,
       };

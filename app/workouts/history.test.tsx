@@ -8,6 +8,7 @@ vi.mock("./sheets.server", () => ({
   readWorkbook: vi.fn(),
 }));
 vi.mock("@remix-run/react", () => ({
+  useLocation: () => ({ search: "" }),
   Form: () => null,
   Link: () => null,
   useRevalidator: () => ({ state: "idle", revalidate: vi.fn() }),
@@ -40,7 +41,9 @@ vi.mock("@remix-run/react", () => ({
           "Duration Seconds": "1,200",
         },
       ],
-      lifts: [],
+      lifts: [
+        { Lift: "Bench", "Program 1RM Input": "200", "Training Max": "180" },
+      ],
       prs: [
         {
           Lift: "Leg press",
@@ -66,4 +69,12 @@ it("renders formatted cardio durations and historical records as numbers", () =>
   expect(view).toContain("20.0 min");
   expect(view).toContain("1,000");
   expect(view).toContain("1166.7");
+});
+
+it("explains training maxes without internal program-input or TM labels", () => {
+  const view = renderToStaticMarkup(<Index />);
+  expect(view).toContain("Base weights used to calculate your workout sets.");
+  expect(view).toContain("180");
+  expect(view).not.toContain("Program input");
+  expect(view).not.toContain("lb TM");
 });

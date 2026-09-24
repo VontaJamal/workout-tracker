@@ -24,7 +24,7 @@ export function Records({ data }: { data: Workbook }) {
   );
   const lifts = [...new Set(prs.map((r) => r.Lift))];
   return (
-    <section className="panel records" id="records">
+    <section className="panel records" id="records" tabIndex={-1}>
       <div className="section-head">
         <div>
           <p className="eyebrow">YOUR NUMBERS TO CHASE</p>

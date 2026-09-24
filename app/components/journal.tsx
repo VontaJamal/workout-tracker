@@ -10,7 +10,7 @@ export function Journal({ data }: { data: Workbook }) {
     (s) => filter === "All" || s.Workout === filter
   );
   return (
-    <section className="panel history" id="history">
+    <section className="panel history" id="history" tabIndex={-1}>
       <div className="section-head">
         <div>
           <p className="eyebrow">THE WORK YOU PUT IN</p>

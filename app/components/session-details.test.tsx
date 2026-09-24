@@ -34,12 +34,16 @@ it("hides RIR and rep quality while preserving original notes and watch stats", 
         "Zone Minutes": "",
         "Device Distance Miles": "2",
         "Data Source": "watch_photo",
+        "Distance Source": "Watch GPS",
         Notes: "Photo: https://drive.google.com/file/d/example/view",
       },
     ],
   };
   render(<SessionDetails session={{ "Session ID": "a" }} data={data} />);
   expect(screen.queryByText(/RIR|Rep quality|unknown/)).not.toBeInTheDocument();
+  expect(
+    screen.queryByText(/Recorded source:|Distance source:/)
+  ).not.toBeInTheDocument();
   expect(screen.getByText("Keep this note.")).toBeInTheDocument();
   expect(screen.getByText("240")).toBeInTheDocument();
   expect(screen.getByText("132")).toBeInTheDocument();

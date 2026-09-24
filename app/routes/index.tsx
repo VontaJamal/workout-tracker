@@ -25,6 +25,7 @@ import {
 } from "~/components/charts";
 import { Journal } from "~/components/journal";
 import { Records } from "~/components/records";
+import { SectionLink } from "~/components/section-link";
 import styles from "~/styles/workouts.css";
 export const headers: HeadersFunction = () => ({
   "Cache-Control": "private, no-store",
@@ -68,16 +69,16 @@ export default function Index() {
   const busy = refresh.state !== "idle";
   return (
     <div className="tracker">
-      <a href="#main" className="skip-link">
+      <SectionLink targetId="main" className="skip-link">
         Skip to content
-      </a>
+      </SectionLink>
       <header className="topbar">
         <Brand />
         {ready && (
           <nav aria-label="Main navigation">
-            <a href="#overview">Overview</a>
-            <a href="#history">Journal</a>
-            <a href="#records">Hall of Fame</a>
+            <SectionLink targetId="overview">Overview</SectionLink>
+            <SectionLink targetId="history">Journal</SectionLink>
+            <SectionLink targetId="records">Hall of Fame</SectionLink>
           </nav>
         )}
         <div className="actions">
@@ -98,10 +99,10 @@ export default function Index() {
           )}
         </div>
       </header>
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         {ready && summary ? (
           <>
-            <section className="intro" id="overview">
+            <section className="intro" id="overview" tabIndex={-1}>
               <div>
                 <p className="eyebrow">YOUR TRAINING, IN FULL COLOR</p>
                 <h1>
@@ -228,9 +229,9 @@ export default function Index() {
                   ? shortDate(calendarDate(summary.latest.Date)!)
                   : "No sessions recorded yet"}
               </span>
-              <a href="#history">
+              <SectionLink targetId="history">
                 View journal <span aria-hidden="true">↗</span>
-              </a>
+              </SectionLink>
             </div>
             <div className="chart-grid" aria-busy={busy}>
               <section className="panel">
@@ -332,27 +333,21 @@ export default function Index() {
                   <Spark />
                 </div>
                 <h2>Training maxes</h2>
-                <p>Current programming values from your sheet.</p>
+                <p>Base weights used to calculate your workout sets.</p>
                 <div className="training-lifts">
                   {data.lifts.map((r) => (
                     <div className="lift" key={r.Lift}>
-                      <span>
-                        {r.Lift}
-                        <small>
-                          Program input {r["Program 1RM Input"] || "—"} lb
-                        </small>
-                      </span>
+                      <span>{r.Lift}</span>
                       <strong>
                         {r["Training Max"] || "—"}
-                        <small>lb TM</small>
+                        <small>lb</small>
                       </strong>
                     </div>
                   ))}
                 </div>
                 {!data.lifts.length && <p>No training maxes recorded yet.</p>}
                 <p className="program-footnote">
-                  Programming values are separate from tested and historical
-                  bests.
+                  Your personal records are in the Hall of Fame below.
                 </p>
               </section>
             </div>
