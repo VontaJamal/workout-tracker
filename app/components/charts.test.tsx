@@ -147,7 +147,9 @@ it("opens the selected day's actual workouts, sets, notes, and cardio instead of
   const dialog = screen.getByRole("dialog");
   expect(dialog).toHaveTextContent("Upper body");
   expect(dialog).toHaveTextContent("Bench press");
-  expect(dialog).toHaveTextContent("135 lb");
+  expect(
+    screen.getByRole("cell", { name: "135", exact: true })
+  ).toBeInTheDocument();
   expect(dialog).toHaveTextContent("Solid last set.");
   expect(dialog).toHaveTextContent("Evening walk");
   expect(dialog).toHaveTextContent("20.0 min");

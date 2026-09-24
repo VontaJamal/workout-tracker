@@ -5,9 +5,11 @@ function value(v: string | undefined) {
   return v === "" || v == null ? "—" : v;
 }
 function loadLabel(r: Row) {
+  const unit = r["Weight Unit"];
+  const suffix = unit && unit !== "lb" ? ` ${unit}` : "";
   return r["Load Type"] === "bodyweight"
     ? "Bodyweight"
-    : `${value(r["Actual Weight"])} ${r["Weight Unit"] || ""}`;
+    : `${value(r["Actual Weight"])}${suffix}`;
 }
 function Notes({ text }: { text?: string }) {
   const links = sourceLinks(text);
