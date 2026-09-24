@@ -78,7 +78,6 @@ export function SessionDetails({
                         <th>Set</th>
                         <th>Weight</th>
                         <th>Reps</th>
-                        <th>Planned</th>
                         <th>Notes</th>
                       </tr>
                     </thead>
@@ -92,15 +91,6 @@ export function SessionDetails({
                           </td>
                           <td data-label="Weight">{loadLabel(r)}</td>
                           <td data-label="Reps">{value(r.Reps)}</td>
-                          <td data-label="Planned">
-                            {r["Load Type"] === "bodyweight"
-                              ? "—"
-                              : `${value(r["Planned Weight"])}${
-                                  r["Planned Weight"]
-                                    ? ` ${r["Weight Unit"] || ""}`
-                                    : ""
-                                }`}
-                          </td>
                           <td data-label="Notes">{r.Notes || "—"}</td>
                         </tr>
                       ))}

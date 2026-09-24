@@ -1758,7 +1758,7 @@
   }
   .session-body .exercise-card td:last-child {
     min-width: 0;
-    grid-column: span 2;
+    grid-column: 1 / -1;
   }
   .cardio-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

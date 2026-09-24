@@ -59,7 +59,7 @@ Expected tabs and column contracts are in `app/workouts/data.ts`: **Sessions**, 
 - RIR and rep-quality metadata stay in the sheet and are omitted from the interface. Existing eligibility rules still exclude failed sets from progress and derived records.
 - Historical PRs come directly from Rep PRs and are never overwritten by recent sessions.
 - Program weeks come from each session; a repeated week does not advance automatically.
-- Session details preserve original planned/actual loads, independent of current training maxes.
+- Session details show Set, Weight, Reps, and Notes. Weight is the original actual load, independent of current training maxes; planned loads stay in the spreadsheet and are omitted from the interface.
 
 ## Design preview
 
