@@ -43,6 +43,9 @@ vi.mock("@remix-run/react", () => ({
       ],
       lifts: [
         { Lift: "Bench", "Program 1RM Input": "200", "Training Max": "180" },
+        { Lift: "Squat", "Training Max": "247.5" },
+        { Lift: "Deadlift", "Training Max": "292.5" },
+        { Lift: "Overhead press", "Training Max": "103.5" },
       ],
       prs: [
         {
@@ -71,10 +74,15 @@ it("renders formatted cardio durations and historical records as numbers", () =>
   expect(view).toContain("1166.7");
 });
 
-it("explains training maxes without internal program-input or TM labels", () => {
+it("shows rounded-down training maxes without overhead press or internal labels", () => {
   const view = renderToStaticMarkup(<Index />);
   expect(view).toContain("Base weights used to calculate your workout sets.");
   expect(view).toContain("180");
+  expect(view).toContain("<strong>245</strong>");
+  expect(view).toContain("<strong>290</strong>");
+  expect(view).not.toContain("247.5");
+  expect(view).not.toContain("292.5");
+  expect(view).not.toContain("Overhead press");
   expect(view).not.toContain("Program input");
   expect(view).not.toContain("lb TM");
 });

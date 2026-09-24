@@ -73,6 +73,21 @@ export function number(value: string | undefined): number | null {
   const n = Number(trimmed.replace(/,/g, ""));
   return Number.isFinite(n) ? n : null;
 }
+export function trainingMaxes(lifts: Row[]) {
+  return lifts
+    .filter((r) => {
+      const lift = (r.Lift || "").toLowerCase().replace(/[\s_-]/g, "");
+      return lift !== "overheadpress" && lift !== "ohp";
+    })
+    .map((r) => {
+      const weight = number(r["Training Max"]);
+      return {
+        lift: r.Lift,
+        weight:
+          weight === null || weight < 0 ? null : Math.floor(weight / 5) * 5,
+      };
+    });
+}
 export function dateKey(value: string): string {
   const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
   return m

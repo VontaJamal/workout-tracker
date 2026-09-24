@@ -9,7 +9,7 @@ import { useState } from "react";
 import { getUser } from "~/session.server";
 import { dashboardData } from "~/workouts/dashboard.server";
 import { configured, readWorkbook } from "~/workouts/sheets.server";
-import { exerciseId, progress } from "~/workouts/data";
+import { exerciseId, progress, trainingMaxes } from "~/workouts/data";
 import {
   calendarDate,
   easternDate,
@@ -67,6 +67,7 @@ export default function Index() {
         })
       : [];
   const busy = refresh.state !== "idle";
+  const maxes = trainingMaxes(data?.lifts || []);
   return (
     <div className="tracker">
       <SectionLink targetId="main" className="skip-link">
@@ -335,14 +336,14 @@ export default function Index() {
                 <h2>Training maxes</h2>
                 <p>Base weights used to calculate your workout sets.</p>
                 <div className="training-lifts">
-                  {data.lifts.map((r) => (
-                    <div className="lift" key={r.Lift}>
-                      <span>{r.Lift}</span>
-                      <strong>{r["Training Max"] || "—"}</strong>
+                  {maxes.map(({ lift, weight }) => (
+                    <div className="lift" key={lift}>
+                      <span>{lift}</span>
+                      <strong>{weight ?? "—"}</strong>
                     </div>
                   ))}
                 </div>
-                {!data.lifts.length && <p>No training maxes recorded yet.</p>}
+                {!maxes.length && <p>No training maxes to show yet.</p>}
                 <p className="program-footnote">
                   Your personal records are in the Hall of Fame below.
                 </p>

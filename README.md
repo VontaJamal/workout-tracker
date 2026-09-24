@@ -13,7 +13,7 @@ A read-only, responsive workout dashboard built on this repository's Remix app. 
 - Main and supplemental work is grouped into exercise cards. Sessions explicitly labeled as a circuit in Workout, Focus, or Main Lift Focus show every movement at equal prominence. Unclassified workouts stay neutral.
 - Cardio details display recorded duration, calories, average/peak heart rate, steps, zone minutes, device distance, speed, and incline when known. Notes can include an HTTPS link to an original watch photo or video; the link opens at its existing host with its existing access permissions. The app does not upload files, OCR images, or automatically receive chat attachments.
 - Section links keep navigation, keyboard focus, and browser back/forward positions consistent.
-- Training maxes show the base weights used to calculate workout sets, without internal program-input labels. Cardio provenance stays in the source data and is omitted from the interface.
+- Training maxes display base weights rounded down to the nearest 5, with overhead press hidden for now. This display rule does not alter spreadsheet values, workout loads, or historical records. Internal program-input labels and cardio provenance stay out of the interface.
 - Signed-out, access-restricted, setup, empty, refresh, and connection-error states.
 - Private server-side Sheets reads, restricted to one existing app user ID.
 
