@@ -4,7 +4,7 @@ A colorful consistency dashboard with actual workout details behind every calend
 
 ## Current preview and proof
 
-All artifacts contain **synthetic workouts only**. Current dashboard, workout-detail, Hall of Fame, and navigation proof uses source commit `2fd3a89` on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. The following evidence commit changes only this review directory.
+All artifacts contain **synthetic workouts only**. The latest strength/circuit screenshots and workout-details recording use source commit `c2014f0` on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. They show the simplified Set, Weight, Reps, and Notes layout. Other dashboard, cardio, Hall of Fame, and navigation proof uses `2fd3a89`. The following evidence commit changes only this review directory.
 
 - [Desktop overview](desktop-overview.png) and [full desktop dashboard](desktop.png)
 - [Phone overview](mobile-overview.png) and [full phone dashboard](mobile.png)
@@ -26,6 +26,7 @@ Other states: `?state=empty`, `?state=signed-out`, `?state=restricted`, `?state=
 - All 37 unit/component tests passed, including existing access-control and strength-data tests. New coverage checks workout grouping, equal circuit treatment, hidden RIR/rep-quality and provenance labels, plain training-max wording, watch fields, missing values, secure source links, same-load records, equipment/unit isolation, bodyweight, duplicate sets, and daily totals across multiple sessions.
 - Both Cypress smoke tests passed: signup, logout, login, restricted access, and notes. Route and heading assertions guard against interacting with the previous screen during navigation.
 - Four synthetic-dashboard Cypress tests passed: first and repeated section navigation on desktop and phone, focus, query preservation, no loader reads during section jumps, back/forward restoration, skip/latest-workout shortcuts, and cardio/training labels. Run `npm run test:dashboard` after building; this starts an isolated synthetic preview on port 8812.
+- The simplified four-column set layout passed browser checks in both calendar dialogs and the journal at 320, 390, and 1440 pixels, with no page or dialog overflow. Phone notes use the full row.
 - Browser checks passed for shared ranges, keyboard calendar selection, modal focus/Escape/close/return, bodyweight progression, history expansion/filter/pagination, refresh/retry, connection states, and reduced motion.
 - Updated strength, circuit, watch, and Hall of Fame interactions passed at 320, 390, 768, and 1440 pixels. Overall range/layout checks also passed at 1024 pixels. No horizontal page or dialog overflow; chart areas scroll inside their panels.
 - Touch opening/closing and exercise/weight selection passed. Hall of Fame values stay unchanged when switching overview ranges.
@@ -40,6 +41,8 @@ Before the fix, the Hall of Fame link jumped to its section and then back to the
 Sessions and training days count distinct IDs and dates. Weeks start Monday in Eastern Time and the current week is partial. Missing cardio durations stay unknown and incomplete totals are labeled.
 
 Main/supplemental grouping uses existing session focus, set type, and category fields. Explicit circuit labels in Workout, Focus, or Main Lift Focus present all exercises equally. Unclassified sessions use a neutral Exercises group. RIR and rep-quality metadata remain in the source but are hidden in the interface; eligibility rules still exclude failed sets from progression and derived records.
+
+Set details show only Set, Weight, Reps, and Notes. Weight is the actual recorded load. Planned weights remain in the source data and are omitted from calendar and journal details.
 
 Historical lift records come directly from Rep PRs and are never overwritten by recent workouts. Logged rep bests compare exercise key, equipment, load type, unit, and actual weight. Daily totals combine eligible working sets across sessions on the same recorded date and count duplicate set IDs once. Bodyweight records use reps without invented weight. Training maxes remain separate programming values.
 
