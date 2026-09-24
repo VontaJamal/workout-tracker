@@ -4,7 +4,11 @@ A colorful consistency dashboard with actual workout details behind every calend
 
 ## Current preview and proof
 
-All artifacts contain **synthetic workouts only**. The latest strength/circuit screenshots and workout-details recording use source commit `c2014f0` on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. They show the simplified Set, Weight, Reps, and Notes layout. Other dashboard, cardio, Hall of Fame, and navigation proof uses `2fd3a89`. The following evidence commit changes only this review directory.
+All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. The following evidence commit changes only this review directory.
+
+- `35001b0`: full desktop/phone dashboards, training-max screenshots, and the navigation-after recording. Training-max rows now show only the lift name and number.
+- `c2014f0`: strength/circuit screenshots and workout-details recording, showing the simplified Set, Weight, Reps, and Notes layout.
+- `2fd3a89`: other overview, cardio, and Hall of Fame screenshots.
 
 - [Desktop overview](desktop-overview.png) and [full desktop dashboard](desktop.png)
 - [Phone overview](mobile-overview.png) and [full phone dashboard](mobile.png)
@@ -27,6 +31,7 @@ Other states: `?state=empty`, `?state=signed-out`, `?state=restricted`, `?state=
 - Both Cypress smoke tests passed: signup, logout, login, restricted access, and notes. Route and heading assertions guard against interacting with the previous screen during navigation.
 - Four synthetic-dashboard Cypress tests passed: first and repeated section navigation on desktop and phone, focus, query preservation, no loader reads during section jumps, back/forward restoration, skip/latest-workout shortcuts, and cardio/training labels. Run `npm run test:dashboard` after building; this starts an isolated synthetic preview on port 8812.
 - The simplified four-column set layout passed browser checks in both calendar dialogs and the journal at 320, 390, and 1440 pixels, with no page or dialog overflow. Phone notes use the full row.
+- Training-max values remain unchanged after removing repeated unit labels; desktop and phone layouts were checked.
 - Browser checks passed for shared ranges, keyboard calendar selection, modal focus/Escape/close/return, bodyweight progression, history expansion/filter/pagination, refresh/retry, connection states, and reduced motion.
 - Updated strength, circuit, watch, and Hall of Fame interactions passed at 320, 390, 768, and 1440 pixels. Overall range/layout checks also passed at 1024 pixels. No horizontal page or dialog overflow; chart areas scroll inside their panels.
 - Touch opening/closing and exercise/weight selection passed. Hall of Fame values stay unchanged when switching overview ranges.
@@ -34,7 +39,7 @@ Other states: `?state=empty`, `?state=signed-out`, `?state=restricted`, `?state=
 
 ## Navigation regression
 
-Before the fix, the Hall of Fame link jumped to its section and then back to the top. A failing browser assertion measured the section 2151.55 pixels below the viewport after the jump. Native fragment links created history entries without router keys, so scroll restoration could override the fragment destination with a saved position. All five section links now use the existing router, preserve query parameters, and move keyboard focus without a separate focus scroll. The same browser assertion passes after the fix at 1440 and 390 pixels. The before recording uses `81eaf56`; the after recording uses `2fd3a89`.
+Before the fix, the Hall of Fame link jumped to its section and then back to the top. A failing browser assertion measured the section 2151.55 pixels below the viewport after the jump. Native fragment links created history entries without router keys, so scroll restoration could override the fragment destination with a saved position. All five section links now use the existing router, preserve query parameters, and move keyboard focus without a separate focus scroll. The same browser assertion passes after the fix at 1440 and 390 pixels. The before recording uses `81eaf56`; the current after recording uses `35001b0`.
 
 ## Data behavior
 
@@ -46,7 +51,7 @@ Set details show only Set, Weight, Reps, and Notes. Weight is the actual recorde
 
 Historical lift records come directly from Rep PRs and are never overwritten by recent workouts. Logged rep bests compare exercise key, equipment, load type, unit, and actual weight. Daily totals combine eligible working sets across sessions on the same recorded date and count duplicate set IDs once. Bodyweight records use reps without invented weight. Training maxes remain separate programming values.
 
-Cardio details read existing watch-stat columns and omit internal recorded-source and distance-source labels. Session or cardio notes may hold an HTTPS link to an original photo/video, which opens at its current host using its existing access permissions. Training maxes show the base weights used to calculate workout sets, with pounds as the unit; internal program-input numbers are omitted. No media uploads, automatic extraction, or chat-attachment ingestion are implemented. No spreadsheet, database-schema, API, or production-configuration changes are included.
+Cardio details read existing watch-stat columns and omit internal recorded-source and distance-source labels. Session or cardio notes may hold an HTTPS link to an original photo/video, which opens at its current host using its existing access permissions. Training maxes show the base weights used to calculate workout sets; repeated unit labels and internal program-input numbers are omitted. No media uploads, automatic extraction, or chat-attachment ingestion are implemented. No spreadsheet, database-schema, API, or production-configuration changes are included.
 
 ## Earlier review artifacts
 
