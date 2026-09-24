@@ -338,10 +338,7 @@ export default function Index() {
                   {data.lifts.map((r) => (
                     <div className="lift" key={r.Lift}>
                       <span>{r.Lift}</span>
-                      <strong>
-                        {r["Training Max"] || "—"}
-                        <small>lb</small>
-                      </strong>
+                      <strong>{r["Training Max"] || "—"}</strong>
                     </div>
                   ))}
                 </div>
