@@ -4,15 +4,17 @@ A colorful consistency dashboard with actual workout details behind every calend
 
 ## Current preview and proof
 
-All artifacts contain **synthetic workouts only**. Current dashboard, workout-detail, and Hall of Fame proof uses source commit `2f38af3` on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. The following evidence commit changes only this review directory.
+All artifacts contain **synthetic workouts only**. Current dashboard, workout-detail, Hall of Fame, and navigation proof uses source commit `2fd3a89` on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. The following evidence commit changes only this review directory.
 
 - [Desktop overview](desktop-overview.png) and [full desktop dashboard](desktop.png)
 - [Phone overview](mobile-overview.png) and [full phone dashboard](mobile.png)
 - [Main and supplemental work: desktop](strength-1440.png) / [phone](strength-390.png)
 - [Circuit: desktop](circuit-1440.png) / [phone](circuit-390.png)
 - [Watch stats: desktop](watch-1440.png) / [phone](watch-390.png)
+- [Training maxes: desktop](training-maxes-1440.png) / [phone](training-maxes-390.png)
 - [Hall of Fame: desktop](hall-of-fame-1440.png) / [phone](hall-of-fame-390.png)
 - [Workout details and records recording](workout-details-and-records.mp4)
+- [Navigation before the fix](navigation-before.mp4) / [stable navigation and simplified details](navigation-after.mp4)
 
 Run `npm run build` and `node scripts/preview.cjs`, then open <http://localhost:4182>. No account needed. The local preview substitutes synthetic data, rejects writes, and never reads Sheets. The three most recent occupied calendar days demonstrate main/supplemental work, a circuit, and a watch-recorded run.
 
@@ -21,12 +23,17 @@ Other states: `?state=empty`, `?state=signed-out`, `?state=restricted`, `?state=
 ## Validation
 
 - Type checking, ESLint, targeted Prettier checks, production build, and diff checks passed.
-- All 36 unit/component tests passed, including existing access-control and strength-data tests. New coverage checks workout grouping, equal circuit treatment, hidden RIR/rep-quality labels, watch fields, missing values, secure source links, same-load records, equipment/unit isolation, bodyweight, duplicate sets, and daily totals across multiple sessions.
+- All 37 unit/component tests passed, including existing access-control and strength-data tests. New coverage checks workout grouping, equal circuit treatment, hidden RIR/rep-quality and provenance labels, plain training-max wording, watch fields, missing values, secure source links, same-load records, equipment/unit isolation, bodyweight, duplicate sets, and daily totals across multiple sessions.
 - Both Cypress smoke tests passed: signup, logout, login, restricted access, and notes. Route and heading assertions guard against interacting with the previous screen during navigation.
+- Four synthetic-dashboard Cypress tests passed: first and repeated section navigation on desktop and phone, focus, query preservation, no loader reads during section jumps, back/forward restoration, skip/latest-workout shortcuts, and cardio/training labels. Run `npm run test:dashboard` after building; this starts an isolated synthetic preview on port 8812.
 - Browser checks passed for shared ranges, keyboard calendar selection, modal focus/Escape/close/return, bodyweight progression, history expansion/filter/pagination, refresh/retry, connection states, and reduced motion.
 - Updated strength, circuit, watch, and Hall of Fame interactions passed at 320, 390, 768, and 1440 pixels. Overall range/layout checks also passed at 1024 pixels. No horizontal page or dialog overflow; chart areas scroll inside their panels.
 - Touch opening/closing and exercise/weight selection passed. Hall of Fame values stay unchanged when switching overview ranges.
 - Axe WCAG 2 A/AA and 2.1 AA scans reported zero violations for the updated overview, records, and open strength/circuit/watch dialogs on desktop and phone. Earlier login, signup, empty/error/access scans passed. Automated scans do not establish complete accessibility certification.
+
+## Navigation regression
+
+Before the fix, the Hall of Fame link jumped to its section and then back to the top. A failing browser assertion measured the section 2151.55 pixels below the viewport after the jump. Native fragment links created history entries without router keys, so scroll restoration could override the fragment destination with a saved position. All five section links now use the existing router, preserve query parameters, and move keyboard focus without a separate focus scroll. The same browser assertion passes after the fix at 1440 and 390 pixels. The before recording uses `81eaf56`; the after recording uses `2fd3a89`.
 
 ## Data behavior
 
@@ -36,7 +43,7 @@ Main/supplemental grouping uses existing session focus, set type, and category f
 
 Historical lift records come directly from Rep PRs and are never overwritten by recent workouts. Logged rep bests compare exercise key, equipment, load type, unit, and actual weight. Daily totals combine eligible working sets across sessions on the same recorded date and count duplicate set IDs once. Bodyweight records use reps without invented weight. Training maxes remain separate programming values.
 
-Cardio details read existing watch-stat columns. Session or cardio notes may hold an HTTPS link to an original photo/video, which opens at its current host using its existing access permissions. No media uploads, automatic extraction, or chat-attachment ingestion are implemented. No spreadsheet, database-schema, API, or production-configuration changes are included.
+Cardio details read existing watch-stat columns and omit internal recorded-source and distance-source labels. Session or cardio notes may hold an HTTPS link to an original photo/video, which opens at its current host using its existing access permissions. Training maxes show the base weights used to calculate workout sets, with pounds as the unit; internal program-input numbers are omitted. No media uploads, automatic extraction, or chat-attachment ingestion are implemented. No spreadsheet, database-schema, API, or production-configuration changes are included.
 
 ## Earlier review artifacts
 
