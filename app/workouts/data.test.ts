@@ -1,4 +1,11 @@
-import { exerciseId, number, progress, rows, tables } from "./data";
+import {
+  exerciseId,
+  number,
+  progress,
+  rows,
+  tables,
+  trainingMaxes,
+} from "./data";
 import type { Row } from "./data";
 const set = (extra: Row = {}): Row => ({
   "Session ID": "s1",
@@ -22,6 +29,56 @@ it("preserves missing values and real zeros", () => {
 });
 it("rejects missing required columns", () => {
   expect(() => rows([["Other"]], ["Reps"])).toThrow();
+});
+it("floors training maxes to five while preserving zeros and unknown values", () => {
+  const weights = [
+    "247.5",
+    "292.5",
+    "180",
+    "249.9",
+    "250",
+    "250.1",
+    "1,002.5",
+    "0",
+    "",
+    "invalid",
+    "-1",
+  ];
+  const lifts = weights.map((weight) =>
+    Object.freeze({ Lift: "Squat", "Training Max": weight })
+  );
+  expect(trainingMaxes(lifts).map((r) => r.weight)).toEqual([
+    245,
+    290,
+    180,
+    245,
+    250,
+    250,
+    1000,
+    0,
+    null,
+    null,
+    null,
+  ]);
+  expect(lifts.map((r) => r["Training Max"])).toEqual(weights);
+});
+it("omits overhead press from training maxes without removing other lifts", () => {
+  const lifts = [
+    "Bench press",
+    "Overhead press",
+    " OHP ",
+    "OVERHEAD_PRESS",
+    "Squat",
+    "Deadlift",
+  ].map((Lift) => ({ Lift, "Training Max": "180" }));
+  expect(trainingMaxes(lifts).map((r) => r.lift)).toEqual([
+    "Bench press",
+    "Squat",
+    "Deadlift",
+  ]);
+  expect(
+    trainingMaxes([{ Lift: "Overhead press", "Training Max": "103.5" }])
+  ).toEqual([]);
 });
 it("uses actual work without substituting targets or mixing equipment", () => {
   const source = [

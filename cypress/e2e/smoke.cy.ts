@@ -16,7 +16,13 @@ describe("smoke tests", () => {
     cy.visitAndCheck("/");
 
     cy.findByRole("link", { name: /log in/i }).click();
+    cy.location("pathname").should("eq", "/login");
+    cy.findByRole("heading", { name: "Welcome back." }).should("be.visible");
     cy.findByRole("link", { name: /sign up/i }).click();
+    cy.location("pathname").should("eq", "/join");
+    cy.findByRole("heading", { name: "Find your rhythm." }).should(
+      "be.visible"
+    );
 
     cy.findByRole("textbox", { name: /email/i }).type(loginForm.email);
     cy.findByLabelText(/password/i).type(loginForm.password);
@@ -25,7 +31,14 @@ describe("smoke tests", () => {
 
     cy.visitAndCheck("/notes");
     cy.findByRole("button", { name: /logout/i }).click();
-    cy.findByRole("link", { name: /log in/i });
+    cy.findByRole("link", { name: /log in/i }).click();
+    cy.location("pathname").should("eq", "/login");
+    cy.findByRole("heading", { name: "Welcome back." }).should("be.visible");
+    cy.findByRole("textbox", { name: /email/i }).type(loginForm.email);
+    cy.findByLabelText(/password/i).type(loginForm.password);
+    cy.findByRole("button", { name: /log in/i }).click();
+    cy.location("pathname").should("eq", "/");
+    cy.findByRole("heading", { name: /private workout journal/i });
   });
 
   it("should allow you to make a note", () => {

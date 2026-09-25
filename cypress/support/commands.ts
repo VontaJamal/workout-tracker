@@ -87,7 +87,8 @@ function deleteUserByEmail(email: string) {
 // ===========================================================
 function visitAndCheck(url: string, waitTime: number = 1000) {
   cy.visit(url);
-  cy.location("pathname").should("contain", url).wait(waitTime);
+  const pathname = new URL(url, Cypress.config("baseUrl")!).pathname;
+  cy.location("pathname").should("contain", pathname).wait(waitTime);
 }
 
 Cypress.Commands.add("login", login);

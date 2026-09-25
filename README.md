@@ -2,11 +2,18 @@
 
 A read-only, responsive workout dashboard built on this repository's Remix app. Continue logging in Google Sheets; refresh the dashboard to see those changes. No workout entry, goal prescriptions, or writes back to the workbook.
 
-## First pass
+## Dashboard
 
-- Session summaries with expandable individual sets, notes, and cardio.
+- A colorful consistency overview with an activity calendar, weekly sessions, cardio minutes, and strength trends.
+- Select a calendar day to open its workouts, full set details, notes, and cardio. Multiple sessions appear together; mobile set cards keep the numbers readable.
+- Shared 4, 12, and 26 week ranges, anchored to the latest sheet read in Eastern Time. Weeks start Monday and the current week is labeled partial.
+- Session summaries with expandable individual sets, notes, and cardio. History shows eight workouts at a time; Show more keeps older workouts accessible independently of the chart range.
 - Exercise progress grouped by exercise key, equipment, load type, and unit.
-- Current programming inputs/training maxes and separate historical rep PRs.
+- A Hall of Fame above the journal shows historical rep PRs, most reps in one set, and most reps in one recorded day. Rep comparisons separate equipment, load type, unit, and actual weight; duplicate set IDs are counted once. Training maxes remain separate.
+- Main and supplemental work is grouped into exercise cards. Sessions explicitly labeled as a circuit in Workout, Focus, or Main Lift Focus show every movement at equal prominence. Unclassified workouts stay neutral.
+- Cardio details display recorded duration, calories, average/peak heart rate, steps, zone minutes, device distance, speed, and incline when known. Notes can include an HTTPS link to an original watch photo or video; the link opens at its existing host with its existing access permissions. The app does not upload files, OCR images, or automatically receive chat attachments.
+- Section links keep navigation, keyboard focus, and browser back/forward positions consistent.
+- Training maxes display base weights rounded down to the nearest 5, with overhead press hidden for now. This display rule does not alter spreadsheet values, workout loads, or historical records. Internal program-input labels and cardio provenance stay out of the interface.
 - Signed-out, access-restricted, setup, empty, refresh, and connection-error states.
 - Private server-side Sheets reads, restricted to one existing app user ID.
 
@@ -43,15 +50,20 @@ Expected tabs and column contracts are in `app/workouts/data.ts`: **Sessions**, 
 
 ## Data rules
 
-- Unknown numbers remain unknown; zero is a real recorded zero.
+- Unknown numbers remain unknown; zero is a real recorded zero. Cardio totals identify missing durations and exclude undated entries with an explanation.
+- Consistency counts distinct session IDs and recorded dates; empty days mean no session recorded, not a missed goal. Future dates are excluded from overview totals.
 - Actual weight drives progress. Never substitute planned weight.
 - Bodyweight sets show reps without invented weight or tonnage.
 - Progress shows the heaviest eligible set per session, breaking load ties by reps. It is not an estimated-strength score; rep counts remain visible.
 - Warm-up, calibration, failed, and rest-pause sets remain visible in history but are excluded from the progress chart.
-- Unknown rep quality is displayed as recorded, not asserted to be clean.
+- RIR and rep-quality metadata stay in the sheet and are omitted from the interface. Existing eligibility rules still exclude failed sets from progress and derived records.
 - Historical PRs come directly from Rep PRs and are never overwritten by recent sessions.
 - Program weeks come from each session; a repeated week does not advance automatically.
-- Session details preserve original planned/actual loads, independent of current training maxes.
+- Session details show Set, Weight, Reps, and Notes. Weight is the original actual load, independent of current training maxes; planned loads stay in the spreadsheet and are omitted from the interface. Pound weights omit repeated lb labels; other units and bodyweight remain explicit.
+
+## Design preview
+
+Run `npm run build`, then `node scripts/preview.cjs`. Open [the local preview](http://localhost:4182). It binds only to localhost, uses synthetic workouts, rejects writes, and never reads Google Sheets. Use `?state=empty`, `?state=signed-out`, `?state=restricted`, `?state=setup`, or `?state=error` to review other states; `?delay=1` makes the refresh state visible. Production loaders and access checks do not use this preview script.
 
 ## Validation
 
@@ -60,9 +72,10 @@ npm run typecheck
 npm run lint
 npm run test -- --run --threads=false
 npm run build
+npm run test:dashboard
 ```
 
-Unit tests cover blank/zero handling, equipment isolation, excluded set types, bodyweight progression, date ordering, and access control. Existing Cypress coverage preserves signup/login and the starter notes routes.
+Unit and component tests cover aggregation, Eastern date boundaries, duplicate sessions, missing durations, range changes, chart selection, journal pagination, blank/zero handling, equipment isolation, excluded set types, bodyweight progression, date ordering, and access control. Existing Cypress coverage preserves signup/login and the starter notes routes. The synthetic dashboard suite checks first and repeated section navigation on desktop and phone, focus, back/forward restoration, query preservation, and simplified cardio/training labels.
 
 ## Deployment
 

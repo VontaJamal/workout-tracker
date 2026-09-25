@@ -73,6 +73,21 @@ export function number(value: string | undefined): number | null {
   const n = Number(trimmed.replace(/,/g, ""));
   return Number.isFinite(n) ? n : null;
 }
+export function trainingMaxes(lifts: Row[]) {
+  return lifts
+    .filter((r) => {
+      const lift = (r.Lift || "").toLowerCase().replace(/[\s_-]/g, "");
+      return lift !== "overheadpress" && lift !== "ohp";
+    })
+    .map((r) => {
+      const weight = number(r["Training Max"]);
+      return {
+        lift: r.Lift,
+        weight:
+          weight === null || weight < 0 ? null : Math.floor(weight / 5) * 5,
+      };
+    });
+}
 export function dateKey(value: string): string {
   const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
   return m
@@ -86,6 +101,16 @@ export function exerciseId(r: Row): string {
     r["Load Type"],
     r["Weight Unit"],
   ]);
+}
+export function exerciseLabel(r: Row): string {
+  return [
+    r.Exercise,
+    r.Equipment,
+    r["Load Type"] === "bodyweight" ? "Bodyweight" : "",
+    r["Weight Unit"] && r["Weight Unit"] !== "lb" ? r["Weight Unit"] : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 export function progress(sets: Row[], id: string) {
   const grouped = new Map<

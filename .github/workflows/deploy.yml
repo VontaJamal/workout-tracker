@@ -117,6 +117,9 @@ jobs:
         env:
           PORT: "8811"
 
+      - name: Test synthetic dashboard navigation and details
+        run: npm run test:dashboard
+
   build:
     name: 🐳 Build
     # Validate the production image on pull requests too.
