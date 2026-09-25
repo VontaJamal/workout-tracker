@@ -6,7 +6,8 @@ A colorful consistency dashboard with actual workout details behind every calend
 
 All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesign`, now synchronized with `origin/main` at `930345e`. The latest merge adds workout-planning guidance without changing application code. The following evidence commit changes only this review directory.
 
-- `db0ff8a`: interactive strength-point and bodyweight screenshots, plus the strength-points-after recording. Dots show date, weight, and reps on hover, focus, click, or tap. The matching before proof uses `dd550fe`.
+- `0f21758`: the replacement strength-points-after recording is a 50-second guided demo with four labeled steps, a visible pointer, and 3.5–9 second reading pauses. It focuses on the chart, demonstrates hover, click, keyboard controls, and bodyweight reps, and replaces the earlier seven-second test recording.
+- `db0ff8a`: interactive strength-point and bodyweight screenshots. Dots show date, weight, and reps on hover, focus, click, or tap. The matching before proof uses `dd550fe`.
 - `95e96ac`: desktop/phone exercise-selection and record-selection screenshots, plus the exercise-selectors recording. Both exercise selectors omit internal load codes and repeated pound labels.
 - `cff2c59`: full desktop/phone dashboards, training-max screenshots, and the navigation-after recording. Training maxes round down to the nearest 5 and omit overhead press for now.
 - `3429b29`: strength/circuit screenshots and workout-details recording, showing Set, Weight, Reps, and Notes without repeated pound labels.
@@ -24,7 +25,7 @@ All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesi
 - [Simplified exercise selectors recording](exercise-selectors.mp4)
 - [Interactive strength points: desktop](strength-points-1440.png) / [phone](strength-points-390.png)
 - [Bodyweight point: desktop](strength-bodyweight-1440.png) / [phone](strength-bodyweight-390.png)
-- [Strength points before](strength-points-before.mp4) / [after](strength-points-after.mp4)
+- [Strength points before](strength-points-before.mp4) / [50-second guided demonstration](strength-points-after.mp4)
 - [Workout details and records recording](workout-details-and-records.mp4)
 - [Navigation before the fix](navigation-before.mp4) / [stable navigation and simplified details](navigation-after.mp4)
 
