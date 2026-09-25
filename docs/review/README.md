@@ -4,9 +4,9 @@ A colorful consistency dashboard with actual workout details behind every calend
 
 ## Current preview and proof
 
-All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. The following evidence commit changes only this review directory.
+All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesign`, now synchronized with `origin/main` at `930345e`. The latest merge adds workout-planning guidance without changing application code. The following evidence commit changes only this review directory.
 
-- `64a8de6`: desktop/phone exercise-selection and record-selection screenshots, plus the exercise-selectors recording. Both exercise selectors omit internal load codes and repeated pound labels.
+- `95e96ac`: desktop/phone exercise-selection and record-selection screenshots, plus the exercise-selectors recording. Both exercise selectors omit internal load codes and repeated pound labels.
 - `cff2c59`: full desktop/phone dashboards, training-max screenshots, and the navigation-after recording. Training maxes round down to the nearest 5 and omit overhead press for now.
 - `3429b29`: strength/circuit screenshots and workout-details recording, showing Set, Weight, Reps, and Notes without repeated pound labels.
 - `2fd3a89`: other overview, cardio, and Hall of Fame screenshots.
