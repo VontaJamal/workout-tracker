@@ -9,7 +9,12 @@ import { useState } from "react";
 import { getUser } from "~/session.server";
 import { dashboardData } from "~/workouts/dashboard.server";
 import { configured, readWorkbook } from "~/workouts/sheets.server";
-import { exerciseId, progress, trainingMaxes } from "~/workouts/data";
+import {
+  exerciseId,
+  exerciseLabel,
+  progress,
+  trainingMaxes,
+} from "~/workouts/data";
 import {
   calendarDate,
   easternDate,
@@ -311,8 +316,7 @@ export default function Index() {
                   )}
                   {exercises.map(([id, r]) => (
                     <option key={id} value={id}>
-                      {r.Exercise} · {r.Equipment} · {r["Load Type"]}
-                      {r["Weight Unit"] ? ` · ${r["Weight Unit"]}` : ""}
+                      {exerciseLabel(r)}
                     </option>
                   ))}
                 </select>

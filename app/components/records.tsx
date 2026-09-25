@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { number } from "~/workouts/data";
+import { exerciseLabel, number } from "~/workouts/data";
 import type { Workbook } from "~/workouts/data";
 import { recordSets, repBests } from "~/workouts/details";
 import { shortDate } from "~/workouts/overview";
@@ -116,9 +116,7 @@ export function Records({ data }: { data: Workbook }) {
               {!exercises.length && <option>No recorded working sets</option>}
               {exercises.map(([id, r]) => (
                 <option key={id} value={id}>
-                  {r.Exercise} · {r.Equipment} ·{" "}
-                  {r["Load Type"].replace(/_/g, " ")}
-                  {r["Weight Unit"] ? ` · ${r["Weight Unit"]}` : ""}
+                  {exerciseLabel(r)}
                 </option>
               ))}
             </select>

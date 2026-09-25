@@ -102,6 +102,16 @@ export function exerciseId(r: Row): string {
     r["Weight Unit"],
   ]);
 }
+export function exerciseLabel(r: Row): string {
+  return [
+    r.Exercise,
+    r.Equipment,
+    r["Load Type"] === "bodyweight" ? "Bodyweight" : "",
+    r["Weight Unit"] && r["Weight Unit"] !== "lb" ? r["Weight Unit"] : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 export function progress(sets: Row[], id: string) {
   const grouped = new Map<
     string,
