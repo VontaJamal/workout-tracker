@@ -41,6 +41,24 @@ or point out that a carried-forward workout is too light.
    adjustments. Do this automatically, without adding a separate approval gate
    for routine planning decisions already within the user's request.
 
+## Show previous results beside every new workout
+
+Every new workout must include an easy-to-scan comparison for each exercise:
+**previous completed date and actual results → new target → what changes**.
+Include this in the coaching response and, when a plan edit is authorized, in
+the saved plan. Do not make the user search the log or ask for the comparison.
+
+- Show the latest comparable completed session's actual load and reps for each
+  relevant set, with units. Include recorded effort or technique details when
+  they explain the target; distinguish warm-ups and calibration from working sets.
+- Use the same exercise and equipment. Flag changes in setup or execution that
+  limit comparison. Label older best sets separately from the latest results.
+- Keep failed attempts, uncounted reps, and rest-pause continuations distinct from
+  clean continuous reps. Never replace actual results with an earlier prescription.
+- If the latest session is incomplete, show what is known and identify any older
+  complete baseline by date. Say when no comparable history exists; do not invent it.
+- State the intended change in load, reps, or working sets, or why the target holds.
+
 ## Ground recommendations and corrections
 
 - Treat an existing next-workout plan as a candidate to evaluate, not proof that
@@ -58,7 +76,8 @@ or point out that a carried-forward workout is too light.
 ## Planning regression check
 
 Before finalizing a workout, verify that the response answers: What demonstrated
-capacity is this based on? Is the complete session challenging enough for the
+capacity is this based on? Can the user see each exercise's previous completed
+date and actual sets beside its new target and intended change? Is the complete session challenging enough for the
 goal? What progresses, or why is it held steady? What performance will determine
 the next adjustment? A copied plan with only its date changed fails this check
 unless the workload has been independently evaluated and retaining it is
