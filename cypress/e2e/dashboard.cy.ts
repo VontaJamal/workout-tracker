@@ -28,6 +28,34 @@ describe("synthetic dashboard", () => {
     cy.visitAndCheck("/?review=1");
   });
   for (const width of [1440, 390]) {
+    it(`shows exact data when selecting strength points at ${width}px`, () => {
+      cy.viewport(width, 900);
+      cy.get(".strength-point").first().as("firstPoint");
+      cy.get("@firstPoint").scrollIntoView().trigger("mouseover");
+      cy.get("@firstPoint")
+        .invoke("attr", "aria-label")
+        .then((label) => {
+          cy.get(".strength-panel .chart-readout").should("have.text", label);
+          cy.findByRole("tooltip").should("contain", label!.split(": ")[1]);
+        });
+      cy.get(".strength-point")
+        .last()
+        .click()
+        .should("have.attr", "aria-pressed", "true");
+      cy.findByRole("tooltip").should("be.visible");
+      cy.focused().type("{esc}");
+      cy.findByRole("tooltip").should("not.exist");
+      cy.get("@firstPoint").focus().type("{enter}");
+      cy.findByRole("tooltip").should("be.visible");
+      cy.get("#exercise").select("Romanian deadlift · Dumbbells");
+      cy.findByRole("tooltip").should("not.exist");
+      cy.get(".strength-point").should("have.length", 1).click();
+      cy.findByRole("tooltip").should("contain", "40 lb · 10 reps");
+      cy.get("#exercise").select("Pull-up · Pull-up bar · Bodyweight");
+      cy.findByRole("tooltip").should("not.exist");
+      cy.get(".strength-point").last().click();
+      cy.findByRole("tooltip").should("contain", "Bodyweight");
+    });
     it(`keeps first and repeated section jumps stable at ${width}px`, () => {
       cy.viewport(width, 900);
       let reads = 0;

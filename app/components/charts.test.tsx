@@ -90,6 +90,71 @@ it("offers exact values and changes the selected strength session", async () => 
   await user.selectOptions(screen.getByLabelText("Inspect a session"), "a");
   expect(screen.getByRole("status")).toHaveTextContent("100 lb · 8 reps");
 });
+it("lets you inspect strength points by hover, click, and keyboard", async () => {
+  const user = userEvent.setup();
+  render(
+    <StrengthChart
+      unit="lb"
+      bodyweight={false}
+      points={[
+        { date: "9/1/2026", session: "a", weight: 100, reps: 8 },
+        { date: "9/22/2026", session: "b", weight: 110, reps: 5 },
+      ]}
+    />
+  );
+  const first = screen.getByRole("button", {
+    name: "9/1/2026: 100 lb · 8 reps",
+  });
+  const last = screen.getByRole("button", {
+    name: "9/22/2026: 110 lb · 5 reps",
+  });
+  await user.hover(first);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("9/1/2026");
+  expect(screen.getByRole("tooltip")).toHaveTextContent("100 lb · 8 reps");
+  expect(screen.getByLabelText("Inspect a session")).toHaveValue("a");
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  await user.click(last);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("110 lb · 5 reps");
+  expect(last).toHaveAttribute("aria-pressed", "true");
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  await user.tab({ shift: true });
+  expect(first).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("tooltip")).toHaveTextContent("100 lb · 8 reps");
+  await user.keyboard("{Escape} ");
+  expect(screen.getByRole("tooltip")).toHaveTextContent("100 lb · 8 reps");
+  await user.selectOptions(screen.getByLabelText("Inspect a session"), "b");
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("110 lb · 5 reps");
+});
+
+it("inspects a single bodyweight point and clears details outside the new range", async () => {
+  const user = userEvent.setup();
+  const props = {
+    unit: "",
+    bodyweight: true,
+    points: [{ date: "9/22/2026", session: "a", weight: null, reps: 8 }],
+  };
+  const { rerender } = render(<StrengthChart {...props} />);
+  await user.click(
+    screen.getByRole("button", { name: "9/22/2026: Bodyweight · 8 reps" })
+  );
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Bodyweight · 8 reps");
+  rerender(
+    <StrengthChart
+      {...props}
+      points={[{ date: "9/23/2026", session: "b", weight: null, reps: 10 }]}
+    />
+  );
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Bodyweight · 10 reps");
+  rerender(<StrengthChart {...props} points={[]} />);
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.getByText(/No comparable working sets/)).toBeInTheDocument();
+});
 
 const dailyWorkouts: Workbook = {
   ...data,

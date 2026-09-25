@@ -267,7 +267,30 @@ export function StrengthChart({
   bodyweight: boolean;
 }) {
   const [selected, setSelected] = useState("");
+  const chart = useRef<HTMLDivElement>(null);
+  const buttons = useRef(new Map<string, HTMLButtonElement>());
+  const [tooltip, setTooltip] = useState<{
+    session: string;
+    left: number;
+    top: number;
+    below: boolean;
+    pinned: boolean;
+  } | null>(null);
   const id = useId().replace(/:/g, "");
+  useEffect(() => setTooltip(null), [points, unit, bodyweight]);
+  useEffect(() => {
+    const dismiss = () => setTooltip(null);
+    window.addEventListener("resize", dismiss);
+    return () => window.removeEventListener("resize", dismiss);
+  }, []);
+  useEffect(() => {
+    if (!tooltip) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setTooltip(null);
+    };
+    window.addEventListener("keydown", dismiss);
+    return () => window.removeEventListener("keydown", dismiss);
+  }, [tooltip]);
   if (!points.length)
     return (
       <p className="empty">
@@ -278,8 +301,11 @@ export function StrengthChart({
   const value = (p: (typeof points)[number]) =>
     bodyweight ? p.reps : p.weight ?? 0;
   const max = Math.max(...points.map(value), 1);
+  const chartWidth = Math.max(640, (points.length - 1) * 40 + 90);
   const x = (i: number) =>
-    points.length === 1 ? 320 : 55 + (i / (points.length - 1)) * 550;
+    points.length === 1
+      ? chartWidth / 2
+      : 55 + (i / (points.length - 1)) * (chartWidth - 90);
   const y = (p: (typeof points)[number]) => 190 - (value(p) / max) * 145;
   const path = points
     .map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p)}`)
@@ -290,80 +316,193 @@ export function StrengthChart({
     `${p.date}: ${bodyweight ? "Bodyweight" : `${p.weight} ${unit}`} · ${
       p.reps
     } reps`;
+  const position = (button: HTMLButtonElement) => {
+    const bounds = chart.current!.getBoundingClientRect();
+    const point = button.getBoundingClientRect();
+    const left = point.left + point.width / 2 - bounds.left;
+    if (left < 0 || left > bounds.width) return null;
+    const halfWidth = Math.min(200, bounds.width - 16) / 2;
+    const top = point.top + point.height / 2 - bounds.top;
+    return {
+      left: Math.max(
+        halfWidth + 8,
+        Math.min(left, bounds.width - halfWidth - 8)
+      ),
+      top,
+      below: top < 80,
+    };
+  };
+  const inspect = (
+    session: string,
+    button: HTMLButtonElement,
+    pinned: boolean
+  ) => {
+    setSelected(session);
+    const anchor = position(button);
+    setTooltip(anchor ? { session, ...anchor, pinned } : null);
+  };
+  const visibleTooltip = tooltip?.session === active.session ? tooltip : null;
   return (
     <>
       <div
-        className="strength-plot"
-        tabIndex={0}
-        role="region"
-        aria-label="Strength chart. Scroll horizontally to inspect the full chart."
+        className="strength-chart"
+        ref={chart}
+        onMouseLeave={() =>
+          setTooltip((current) => (current?.pinned ? current : null))
+        }
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            setTooltip(null);
+        }}
       >
-        <svg viewBox="0 0 640 225" role="img" aria-labelledby={`${id}-title`}>
-          <title id={`${id}-title`}>
-            {`Working-set ${
-              bodyweight ? "reps" : `weight in ${unit}`
-            }. Exact values and reps are available in the controls and table below.`}
-          </title>
-          <defs>
-            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#7845ec" stopOpacity=".25" />
-              <stop offset="100%" stopColor="#7845ec" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[0, 0.5, 1].map((v) => (
-            <g key={v}>
-              <line
-                x1="55"
-                x2="605"
-                y1={190 - v * 145}
-                y2={190 - v * 145}
-                stroke="#e9e2f3"
-                strokeDasharray="4 5"
-              />
-              <text x="42" y={195 - v * 145} textAnchor="end">
-                {Number((v * max).toFixed(1))}
+        <div
+          className="strength-plot"
+          tabIndex={0}
+          role="region"
+          aria-label="Strength chart. Scroll horizontally to inspect the full chart."
+          onScroll={() =>
+            setTooltip((current) => {
+              const button = current && buttons.current.get(current.session);
+              const anchor = button && position(button);
+              return current && anchor ? { ...current, ...anchor } : null;
+            })
+          }
+        >
+          <div
+            className="strength-canvas"
+            style={{
+              minWidth: chartWidth * 0.875,
+            }}
+          >
+            <svg
+              viewBox={`0 0 ${chartWidth} 225`}
+              role="img"
+              aria-labelledby={`${id}-title`}
+            >
+              <title id={`${id}-title`}>
+                {`Working-set ${
+                  bodyweight ? "reps" : `weight in ${unit}`
+                }. Select a point for its date, exact weight and reps. Values are also available in the controls and table below.`}
+              </title>
+              <defs>
+                <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#7845ec" stopOpacity=".25" />
+                  <stop offset="100%" stopColor="#7845ec" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {[0, 0.5, 1].map((v) => (
+                <g key={v}>
+                  <line
+                    x1="55"
+                    x2={chartWidth - 35}
+                    y1={190 - v * 145}
+                    y2={190 - v * 145}
+                    stroke="#e9e2f3"
+                    strokeDasharray="4 5"
+                  />
+                  <text x="42" y={195 - v * 145} textAnchor="end">
+                    {Number((v * max).toFixed(1))}
+                  </text>
+                </g>
+              ))}
+              {points.length > 1 && (
+                <>
+                  <path
+                    d={`${path} L${chartWidth - 35},190 L55,190 Z`}
+                    fill={`url(#${id})`}
+                  />
+                  <path
+                    d={path}
+                    fill="none"
+                    stroke="#7141d9"
+                    strokeWidth="3"
+                    strokeLinejoin="round"
+                  />
+                </>
+              )}
+              {points.map((p, i) => (
+                <circle
+                  key={p.session}
+                  cx={x(i)}
+                  cy={y(p)}
+                  r={active.session === p.session ? 6 : 4}
+                  fill="#7141d9"
+                  stroke="white"
+                  strokeWidth="2"
+                />
+              ))}
+              <text x="55" y="217">
+                {points[0].date}
               </text>
-            </g>
-          ))}
-          {points.length > 1 && (
-            <>
-              <path d={`${path} L605,190 L55,190 Z`} fill={`url(#${id})`} />
-              <path
-                d={path}
-                fill="none"
-                stroke="#7141d9"
-                strokeWidth="3"
-                strokeLinejoin="round"
+              {points.length > 1 && (
+                <text x={chartWidth - 35} y="217" textAnchor="end">
+                  {points[points.length - 1].date}
+                </text>
+              )}
+            </svg>
+            {points.map((p, i) => (
+              <button
+                key={p.session}
+                ref={(button) => {
+                  if (button) buttons.current.set(p.session, button);
+                  else buttons.current.delete(p.session);
+                }}
+                className="strength-point"
+                type="button"
+                style={{
+                  left: `${(x(i) / chartWidth) * 100}%`,
+                  top: `${(y(p) / 225) * 100}%`,
+                }}
+                aria-label={describe(p)}
+                aria-pressed={active.session === p.session}
+                aria-describedby={
+                  visibleTooltip?.session === p.session
+                    ? `${id}-tooltip`
+                    : undefined
+                }
+                onMouseEnter={(event) =>
+                  inspect(p.session, event.currentTarget, false)
+                }
+                onFocus={(event) =>
+                  inspect(p.session, event.currentTarget, true)
+                }
+                onClick={(event) =>
+                  inspect(p.session, event.currentTarget, true)
+                }
               />
-            </>
-          )}
-          {points.map((p, i) => (
-            <circle
-              key={p.session}
-              cx={x(i)}
-              cy={y(p)}
-              r={active.session === p.session ? 6 : 4}
-              fill="#7141d9"
-              stroke="white"
-              strokeWidth="2"
-            />
-          ))}
-          <text x="55" y="217">
-            {points[0].date}
-          </text>
-          {points.length > 1 && (
-            <text x="605" y="217" textAnchor="end">
-              {points[points.length - 1].date}
-            </text>
-          )}
-        </svg>
+            ))}
+          </div>
+        </div>
+        {visibleTooltip && (
+          <div
+            className="strength-tooltip"
+            id={`${id}-tooltip`}
+            role="tooltip"
+            style={{
+              left: visibleTooltip.left,
+              top: visibleTooltip.top,
+              transform: `translate(-50%, ${
+                visibleTooltip.below ? "18px" : "calc(-100% - 18px)"
+              })`,
+            }}
+          >
+            <span>{active.date}</span>
+            <strong>
+              {bodyweight ? "Bodyweight" : `${active.weight} ${unit}`} ·{" "}
+              {active.reps} reps
+            </strong>
+          </div>
+        )}
       </div>
       <div className="strength-inspect">
         <label htmlFor={`${id}-set`}>Inspect a session</label>
         <select
           id={`${id}-set`}
           value={active.session}
-          onChange={(e) => setSelected(e.target.value)}
+          onChange={(e) => {
+            setSelected(e.target.value);
+            setTooltip(null);
+          }}
         >
           {points.map((p) => (
             <option key={p.session} value={p.session}>

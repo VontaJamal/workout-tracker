@@ -719,8 +719,57 @@
 .strength-panel > select {
   width: 100%;
 }
-.strength-plot {
+.strength-chart {
+  position: relative;
   margin-top: 14px;
+}
+.strength-plot {
+  overflow-x: auto;
+}
+.strength-canvas {
+  position: relative;
+}
+.strength-point {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+.tracker .strength-point {
+  transition: background 0.16s ease;
+}
+.tracker .strength-point:active:not(:disabled) {
+  transform: translate(-50%, -50%);
+}
+.strength-point:hover,
+.strength-point:focus-visible {
+  background: #7845ec20;
+  outline: 2px solid var(--violet);
+  outline-offset: -3px;
+}
+.strength-tooltip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 200px;
+  max-width: calc(100% - 16px);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: white;
+  box-shadow: 0 4px 14px #27203920;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.strength-tooltip span {
+  color: #e9dfff;
 }
 .strength-plot svg {
   width: 100%;
@@ -1285,12 +1334,6 @@
   }
   .chart-stat strong {
     font-size: 38px;
-  }
-  .strength-plot {
-    overflow-x: auto;
-  }
-  .strength-plot svg {
-    min-width: 560px;
   }
   .strength-inspect {
     flex-direction: column;
