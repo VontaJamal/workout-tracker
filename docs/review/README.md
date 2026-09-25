@@ -6,6 +6,7 @@ A colorful consistency dashboard with actual workout details behind every calend
 
 All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesign`, synchronized with `origin/main` at `8dd2cff`. The following evidence commit changes only this review directory.
 
+- `64a8de6`: desktop/phone exercise-selection and record-selection screenshots, plus the exercise-selectors recording. Both exercise selectors omit internal load codes and repeated pound labels.
 - `cff2c59`: full desktop/phone dashboards, training-max screenshots, and the navigation-after recording. Training maxes round down to the nearest 5 and omit overhead press for now.
 - `3429b29`: strength/circuit screenshots and workout-details recording, showing Set, Weight, Reps, and Notes without repeated pound labels.
 - `2fd3a89`: other overview, cardio, and Hall of Fame screenshots.
@@ -17,6 +18,9 @@ All artifacts contain **synthetic workouts only**, on `cx/playful-workout-redesi
 - [Watch stats: desktop](watch-1440.png) / [phone](watch-390.png)
 - [Training maxes: desktop](training-maxes-1440.png) / [phone](training-maxes-390.png)
 - [Hall of Fame: desktop](hall-of-fame-1440.png) / [phone](hall-of-fame-390.png)
+- [Strength exercise selector: desktop](exercise-selection-1440.png) / [phone](exercise-selection-390.png)
+- [Records exercise selector: desktop](record-selection-1440.png) / [phone](record-selection-390.png)
+- [Simplified exercise selectors recording](exercise-selectors.mp4)
 - [Workout details and records recording](workout-details-and-records.mp4)
 - [Navigation before the fix](navigation-before.mp4) / [stable navigation and simplified details](navigation-after.mp4)
 
@@ -32,6 +36,7 @@ Other states: `?state=empty`, `?state=signed-out`, `?state=restricted`, `?state=
 - Four synthetic-dashboard Cypress tests passed: first and repeated section navigation on desktop and phone, focus, query preservation, no loader reads during section jumps, back/forward restoration, skip/latest-workout shortcuts, and cardio/training labels. Run `npm run test:dashboard` after building; this starts an isolated synthetic preview on port 8812.
 - The simplified four-column set layout passed browser checks in both calendar dialogs and the journal at 320, 390, and 1440 pixels, with no page or dialog overflow. Pound weights show numbers without repeated lb labels; bodyweight remains explicit. Phone notes use the full row.
 - The synthetic training-max card shows Bench press 180, Squat 245, and Deadlift 290 on desktop and phone. Overhead press is hidden. Rounding tests cover decimals, exact multiples, formatted numbers, zero, missing/invalid values, and source-data preservation.
+- Both exercise selectors display Romanian deadlift · Dumbbells, without internal load codes or repeated pound labels. Browser checks at 320, 390, and 1440 pixels verified selection, unchanged underlying IDs, actual-data readouts, bodyweight, focus, no page overflow, and no browser errors or Axe violations.
 - Browser checks passed for shared ranges, keyboard calendar selection, modal focus/Escape/close/return, bodyweight progression, history expansion/filter/pagination, refresh/retry, connection states, and reduced motion.
 - Updated strength, circuit, watch, and Hall of Fame interactions passed at 320, 390, 768, and 1440 pixels. Overall range/layout checks also passed at 1024 pixels. No horizontal page or dialog overflow; chart areas scroll inside their panels.
 - Touch opening/closing and exercise/weight selection passed. Hall of Fame values stay unchanged when switching overview ranges.
@@ -48,6 +53,8 @@ Sessions and training days count distinct IDs and dates. Weeks start Monday in E
 Main/supplemental grouping uses existing session focus, set type, and category fields. Explicit circuit labels in Workout, Focus, or Main Lift Focus present all exercises equally. Unclassified sessions use a neutral Exercises group. RIR and rep-quality metadata remain in the source but are hidden in the interface; eligibility rules still exclude failed sets from progression and derived records.
 
 Set details show only Set, Weight, Reps, and Notes. Weight is the actual recorded load. Pound weights omit repeated lb labels; other units and bodyweight remain explicit. Planned weights remain in the source data and are omitted from calendar and journal details.
+
+Strength progress and Hall of Fame exercise selectors share concise exercise/equipment labels. Bodyweight and non-pound units remain explicit, while internal load codes and default pound labels are omitted. Selection IDs still separate exercise key, equipment, load type, and unit.
 
 Historical lift records come directly from Rep PRs and are never overwritten by recent workouts. Logged rep bests compare exercise key, equipment, load type, unit, and actual weight. Daily totals combine eligible working sets across sessions on the same recorded date and count duplicate set IDs once. Bodyweight records use reps without invented weight. Training maxes remain separate programming values.
 
