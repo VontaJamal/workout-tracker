@@ -26,6 +26,21 @@ authorize unrequested workbook edits.
   silently replace the program with a different workout or force symptomatic
   lifting.
 
+## Always show weights and plates (SOP)
+
+- Whenever prescribing barbell loads, including warm-ups, main sets,
+  supplemental sets, and live set-by-set coaching, always give total weight
+  including the bar, sets/reps, and the exact plates to load on EACH side.
+  Do not wait for the user to request plate math.
+- State the bar weight used. Use the confirmed bar weight when known; otherwise
+  clearly label a 45-lb bar as an assumption and recalculate if corrected.
+- Check that bar weight plus twice the per-side plate total equals the stated
+  total. Use available plate denominations when known; do not imply unverified
+  equipment availability. Preserve the established rounding-down rule when
+  exact prescribed loads cannot be assembled.
+- For dumbbells, state weight per hand; for machines, state the stack or loading
+  convention rather than presenting barbell plate math.
+
 ## Automatically assess the training challenge
 
 The user wants challenging, productive training that advances their goals.
