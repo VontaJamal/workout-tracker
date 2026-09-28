@@ -5,6 +5,27 @@ and planning requested in its tasks. The dashboard itself remains read-only as
 described in README.md; coaching instructions do not add application features or
 authorize unrequested workbook edits.
 
+## Follow 5/3/1 as the default session structure
+
+- Build strength workouts around the user's current 5/3/1 program in the 531
+  spreadsheet. Read the current training maxes, prescribed main and supplemental
+  work, and completed sessions before selecting the day's work.
+- Monday arm day is bench-led: bench is the main lift, followed by the program's
+  supplemental work and assistance selected around that lift and the user's
+  arm emphasis. "Arm day" does not mean replacing bench with an isolation-only
+  biceps/triceps session.
+- Present the main lift's warm-ups and 5/3/1 working sets first, then supplemental
+  work, then assistance. Derive loads and reps from the current spreadsheet and
+  confirmed progression; do not advance the program week merely because a new
+  calendar week has begun.
+- Use a cardio-focused or circuit-style workout instead only when the user
+  explicitly requests that type of session. Do not independently substitute
+  either for the scheduled 5/3/1 strength workout.
+- Symptoms and recovery still matter. If they may prevent the planned main lift,
+  clarify the current symptoms and explain any necessary adjustment; do not
+  silently replace the program with a different workout or force symptomatic
+  lifting.
+
 ## Automatically assess the training challenge
 
 The user wants challenging, productive training that advances their goals.
@@ -57,7 +78,10 @@ or point out that a carried-forward workout is too light.
 
 ## Planning regression check
 
-Before finalizing a workout, verify that the response answers: What demonstrated
+Before finalizing a workout, verify that it follows the 5/3/1 main lift and
+supplemental structure unless the user explicitly requested a cardio or circuit
+session, and that any symptom-related adjustment is explained. Then check:
+What demonstrated
 capacity is this based on? Is the complete session challenging enough for the
 goal? What progresses, or why is it held steady? What performance will determine
 the next adjustment? A copied plan with only its date changed fails this check
